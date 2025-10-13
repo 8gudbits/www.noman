@@ -338,8 +338,6 @@ function initMobileNavHaptics() {
   navButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
       if ("vibrate" in navigator) {
-        tapSound.currentTime = 0;
-        tapSound.play();
         navigator.vibrate(95);
       }
     });
@@ -427,9 +425,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const menuIcon = mobileMenuBtn.querySelector("i");
   const backToTop = document.getElementById("backToTop");
   const scrollProgress = document.getElementById("scrollProgress");
-  const tapSound = document.getElementById("tapSound");
-
-  tapSound.volume = 0.45; // Set volume to 45%
 
   initCustomCursor(); // Initialize custom cursor effects
   initParticleEffect(); // Initialize particle effects on click
@@ -461,8 +456,6 @@ document.addEventListener("DOMContentLoaded", function () {
       const isTouchDevice = navigator.maxTouchPoints > 0;
 
       if (isTouchDevice && "vibrate" in navigator) {
-        tapSound.currentTime = 0;
-        tapSound.play();
         navigator.vibrate(95);
       }
       window.scrollTo({
