@@ -1,8 +1,8 @@
-// scripts/extras.js
+// /scripts/extras.js
 
-// ##################
-//  Console messages
-// ##################
+// ################## //
+//  Console messages  //
+// ################## //
 console.log(
   "%cPeeking under the hood huh..👀 Noman likes you.",
   "font-size: 18px; font-weight: bold; color: #ff3b30; background: #222; padding: 4px 8px; border-radius: 4px;"
@@ -31,9 +31,9 @@ function checkDevTools() {
 
 setInterval(checkDevTools, 1000);
 
-// #####################
-//  GitHub link tooltip
-// #####################
+// ##################### //
+//  GitHub link tooltip  //
+// ##################### //
 let hoverTimer;
 
 document
@@ -51,9 +51,9 @@ document
     this.classList.remove("show-tooltip");
   });
 
-// ############################
-//  Title change on tab switch
-// ############################
+// ############################ //
+//  Title change on tab switch  //
+// ############################ //
 let originalTitle = document.title;
 
 document.addEventListener("visibilitychange", function () {
@@ -64,9 +64,9 @@ document.addEventListener("visibilitychange", function () {
   }
 });
 
-// ####################
-//  Hero section toast
-// ####################
+// #################### //
+//  Hero section toast  //
+// #################### //
 let heroTimer;
 let toast = null;
 
@@ -123,9 +123,9 @@ window.addEventListener("scroll", function () {
 
 checkHeroSection();
 
-// #####################
-//  About section toast
-// #####################
+// ##################### //
+//  About section toast  //
+// ##################### //
 let aboutTimer;
 let aboutToastShown = false;
 
@@ -178,9 +178,9 @@ function showAboutToast() {
 window.addEventListener("scroll", checkAboutSection);
 checkAboutSection();
 
-// ##########################
-//  Speed toast notification
-// ##########################
+// ########################## //
+//  Speed toast notification  //
+// ########################## //
 let lastScrollTop = 0;
 let lastScrollTime = Date.now();
 let fastScrollDistance = 0;
@@ -196,15 +196,15 @@ function checkScrollSpeed() {
     const scrollSpeed = Math.abs(scrollDistance) / timeDiff;
 
     // Only track when scrolling down
-    if (scrollDistance > 0 && scrollSpeed > 1) {
+    if (scrollDistance > 0 && scrollSpeed > 0.8) {
       fastScrollDistance += scrollDistance;
 
-      if (fastScrollDistance > 700) {
+      if (fastScrollDistance > 800) {
         showSpeedToast();
         fastScrollDistance = 0;
       }
     } else {
-      fastScrollDistance = Math.max(0, fastScrollDistance - 100);
+      fastScrollDistance = Math.max(0, fastScrollDistance - 50);
     }
   }
 
@@ -218,23 +218,35 @@ function showSpeedToast() {
   toast.textContent = "Whoa there, speed demon. You missed some good stuff...";
   document.body.appendChild(toast);
 
+  // Add hover to dismiss
+  toast.addEventListener('mouseenter', () => {
+    toast.classList.remove("show");
+    setTimeout(() => {
+      if (document.body.contains(toast)) {
+        document.body.removeChild(toast);
+      }
+    }, 300);
+  });
+
   setTimeout(() => {
     toast.classList.add("show");
-  }, 100);
+  }, 50);
 
   setTimeout(() => {
     toast.classList.remove("show");
     setTimeout(() => {
-      document.body.removeChild(toast);
-    }, 500);
-  }, 3000);
+      if (document.body.contains(toast)) {
+        document.body.removeChild(toast);
+      }
+    }, 300);
+  }, 3500);
 }
 
 window.addEventListener("scroll", checkScrollSpeed);
 
-// ######################
-//  Sleep mode animation
-// ######################
+// ###################### //
+//  Sleep mode animation  //
+// ###################### //
 let sleepTimer;
 let blankTimer;
 let heartbeatTimer;
@@ -298,7 +310,7 @@ function startSleepAnimation() {
     // Show heartbeat after blank screen
     heartbeatTimer = setTimeout(() => {
       overlay.classList.add("show-heartbeat");
-    }, 5000); // 5 seconds after going blank
+    }, 8000); // 8 seconds after going blank
   }, 5000); // 5 seconds of blur
 }
 
