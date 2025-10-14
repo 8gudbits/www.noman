@@ -1,8 +1,8 @@
-// scripts/script.js
+// /scripts/script.js
 
-// #########################################
-//  Particle background and parallax effect
-// #########################################
+// ######################################### //
+//  Particle background and parallax effect  //
+// ######################################### //
 (function () {
   const canvas = document.getElementById("particle-canvas");
   const ctx = canvas.getContext("2d");
@@ -11,7 +11,7 @@
   let width, height;
   let particles = [];
   const isMobile = window.innerWidth < 480;
-  const particleCount = isMobile ? 18 : 30;
+  const particleCount = isMobile ? 18 : 35;
   const maxDistance = 200;
   const mouse = { x: null, y: null };
 
@@ -146,9 +146,9 @@
   draw();
 })();
 
-// ###############
-//  Custom cursor
-// ###############
+// ############### //
+//  Custom cursor  //
+// ############### //
 function initCustomCursor() {
   const cursor = document.getElementById("cursor");
   const cursorFollower = document.getElementById("cursorFollower");
@@ -238,9 +238,9 @@ function initCustomCursor() {
   });
 }
 
-// ##########################
-//  Particle effect on click
-// ##########################
+// ########################## //
+//  Particle effect on click  //
+// ########################## //
 function initParticleEffect() {
   document.addEventListener("click", (e) => {
     // Create 5-8 particles on each click
@@ -310,9 +310,9 @@ function initParticleEffect() {
   }
 }
 
-// ####################################
-//  Handle scroll indicator visibility
-// ####################################
+// #################################### //
+//  Handle scroll indicator visibility  //
+// #################################### //
 function initScrollIndicator() {
   const scrollIndicator = document.getElementById("scrollIndicator");
 
@@ -338,14 +338,15 @@ function initMobileNavHaptics() {
   navButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
       if ("vibrate" in navigator) {
-        tapSound.currentTime = 0;
-        tapSound.play();
         navigator.vibrate(95);
       }
     });
   });
 }
 
+// ####################### //
+//  Tilt effect on panels  //
+// ####################### //
 function initTiltEffect() {
   const glassPanels = document.querySelectorAll(".glass-panel");
 
@@ -415,8 +416,9 @@ function initTiltEffect() {
   });
 }
 
-// =========================
-// =========================
+// ######################## //
+//  Main site script logic  //
+// ######################## //
 document.addEventListener("DOMContentLoaded", function () {
   const sections = document.querySelectorAll("section");
   const navButtons = document.querySelectorAll(".nav-btn");
@@ -427,9 +429,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const menuIcon = mobileMenuBtn.querySelector("i");
   const backToTop = document.getElementById("backToTop");
   const scrollProgress = document.getElementById("scrollProgress");
-  const tapSound = document.getElementById("tapSound");
-
-  tapSound.volume = 0.45; // Set volume to 45%
 
   initCustomCursor(); // Initialize custom cursor effects
   initParticleEffect(); // Initialize particle effects on click
@@ -461,8 +460,6 @@ document.addEventListener("DOMContentLoaded", function () {
       const isTouchDevice = navigator.maxTouchPoints > 0;
 
       if (isTouchDevice && "vibrate" in navigator) {
-        tapSound.currentTime = 0;
-        tapSound.play();
         navigator.vibrate(95);
       }
       window.scrollTo({
@@ -472,7 +469,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Handle scroll animation for navigation - smooth proportional animation
+  // Handle scroll animation for navigation
   function handleNavScroll() {
     const scrollY = window.scrollY;
     const navSelector = document.querySelector(".section-selector");

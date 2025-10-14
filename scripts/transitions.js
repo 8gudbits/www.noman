@@ -1,5 +1,8 @@
-// scripts/transitions.js
+// /scripts/transitions.js
 
+// ##################################### //
+//  Scroll-based directional animations  //
+// ##################################### //
 function initScrollDirectionalFade() {
   const elements = document.querySelectorAll(".scroll-fade");
 
@@ -41,6 +44,9 @@ function initScrollDirectionalFade() {
   updateScrollAnimations();
 }
 
+// ############################# //
+//  Scroll-based zoom animations //
+// ############################# //
 function initScrollZoom() {
   const elements = document.querySelectorAll(".scroll-zoom");
 
@@ -91,6 +97,9 @@ function initScrollBlur() {
   updateBlurAnimations();
 }
 
+// ########################### //
+//  Scroll-based orbit effect  //
+// ########################### //
 function initScrollOrbit() {
   const items = document.querySelectorAll(".tech-item.scroll-orbit");
 

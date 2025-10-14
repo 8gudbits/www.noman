@@ -1,4 +1,4 @@
-/* styles/style.css */
+/* /styles/style.css */
 
 /* ####################### */
 /*  Reset and base styles  */
@@ -406,9 +406,9 @@ body {
     background: var(--glass-bg);
 }
 
-/* ####### */
-/* Layout  */
-/* ####### */
+/* ######## */
+/*  Layout  */
+/* ######## */
 .container {
     max-width: 1200px;
     margin: 0 auto;
@@ -583,6 +583,96 @@ h2::after {
     font-style: italic;
     color: var(--text-secondary);
     line-height: 1.8;
+}
+
+/* ###################### */
+/*  Achievements Section  */
+/* ###################### */
+.achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.achievement-card {
+    text-align: center;
+    padding: 2rem 1.5rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.achievement-card:hover {
+    transform: translateY(-5px);
+}
+
+.achievement-image {
+    margin-bottom: 1rem;
+    height: 120px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Flip container */
+.achievement-flip {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    perspective: 1000px;
+}
+
+.achievement-front,
+.achievement-back {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    top: 0;
+    left: 0;
+    backface-visibility: hidden;
+    transition: transform 0.6s ease;
+    border-radius: 50%;
+}
+
+.achievement-front {
+    transform: rotateY(0deg);
+}
+
+.achievement-back {
+    transform: rotateY(180deg);
+}
+
+.achievement-flip:hover .achievement-front {
+    transform: rotateY(-180deg);
+}
+
+.achievement-flip:hover .achievement-back {
+    transform: rotateY(0deg);
+}
+
+.achievement-card h3 {
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+    font-size: 1.2rem;
+}
+
+.achievement-card p {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* Bronze badge */
+.bronze-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: linear-gradient(90deg, #F9BFA7, #F9BFA7);
+    color: #8B4513;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8em;
+    font-weight: 600;
+    border: 2px solid #F9BFA7;
 }
 
 /* ############### */
