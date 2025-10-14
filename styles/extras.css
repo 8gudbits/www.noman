@@ -217,3 +217,40 @@
     }
 }
 
+/* ################## */
+/*  Item dragging UI  */
+/* ################## */
+.draggable-container {
+    position: relative;
+}
+
+.draggable-item {
+    position: relative;
+    touch-action: none;
+}
+
+.draggable-item.dragging {
+    transform: scale(1.05) rotate(2deg);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    width: var(--item-width) !important;
+    height: var(--item-height) !important;
+}
+
+.draggable-item.placeholder {
+    opacity: 0.4;
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px dashed var(--accent-red);
+    border-radius: 16px;
+    pointer-events: none;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    .draggable-item.dragging {
+        transform: scale(1.02) rotate(1deg);
+    }
+}
+
