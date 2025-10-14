@@ -192,6 +192,15 @@ let fastScrollDistance = 0;
 let lastToastTime = 0;
 let isCoolingDown = false;
 
+function initializeScrollTracking() {
+  // Set the initial scroll position to the current restored position
+  lastScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  lastScrollTime = Date.now();
+
+  //Start listening to scroll events
+  window.addEventListener("scroll", checkScrollSpeed);
+}
+
 function checkScrollSpeed() {
   const currentTime = Date.now();
 
@@ -260,7 +269,10 @@ function showSpeedToast() {
   }, 3500);
 }
 
-window.addEventListener("scroll", checkScrollSpeed);
+window.addEventListener("load", initializeScrollTracking);
+if (document.readyState === "complete") {
+  initializeScrollTracking();
+}
 
 // ###################### //
 //  Sleep mode animation  //
@@ -392,9 +404,9 @@ events.forEach((event) => {
 
 startIdleTimer();
 
-// ################### //
-// Item dragging logic //
-// ################### //
+// ################################ //
+// Item dragging and deleting logic //
+// ################################ //
 class DragDropManager {
   constructor() {
     this.draggedItem = null;
@@ -412,12 +424,16 @@ class DragDropManager {
     this.currentTargetIndex = -1;
     this.lastSnapTime = 0;
     this.snapCooldown = 100;
+    this.deletedItems = new Map();
+    this.floatingDeleteZone = null;
+    this.isOverDeleteZone = false;
 
     this.init();
   }
 
   init() {
     this.setupContainers();
+    this.createFloatingDeleteZone();
     this.bindEvents();
   }
 
@@ -435,6 +451,7 @@ class DragDropManager {
       const container = document.querySelector(selector);
       if (container) {
         this.makeContainerDraggable(container);
+        this.deletedItems.set(container, []);
       }
     });
   }
@@ -447,6 +464,19 @@ class DragDropManager {
       item.classList.add("draggable-item");
       if (!item.dataset.originalIndex) {
         item.dataset.originalIndex = index;
+      }
+    });
+  }
+
+  createFloatingDeleteZone() {
+    this.floatingDeleteZone = document.createElement("div");
+    this.floatingDeleteZone.className = "floating-delete-zone";
+    this.floatingDeleteZone.innerHTML = `<i class="fas fa-trash"></i>`;
+    document.body.appendChild(this.floatingDeleteZone);
+
+    this.floatingDeleteZone.addEventListener("click", () => {
+      if (this.isDragging && this.draggedItem) {
+        this.deleteDraggedItem();
       }
     });
   }
@@ -466,6 +496,8 @@ class DragDropManager {
 
     document.addEventListener("dragstart", (e) => e.preventDefault());
     document.addEventListener("selectstart", this.handleSelectStart.bind(this));
+
+    document.addEventListener("keydown", this.handleKeyDown.bind(this));
   }
 
   handleSelectStart(e) {
@@ -474,10 +506,151 @@ class DragDropManager {
     }
   }
 
+  handleKeyDown(e) {
+    if (!this.isDragging || !this.draggedItem) return;
+
+    const deleteKeys = ["Escape", "Delete", "Backspace"];
+    if (deleteKeys.includes(e.key)) {
+      e.preventDefault();
+      e.stopPropagation();
+      this.deleteDraggedItem();
+    }
+  }
+
+  deleteDraggedItem() {
+    if (!this.draggedItem || !this.container) return;
+
+    const deletedItem = {
+      element: this.draggedItem,
+      originalIndex: this.originalIndex,
+      container: this.container,
+    };
+
+    const containerDeletedItems = this.deletedItems.get(this.container) || [];
+    containerDeletedItems.push(deletedItem);
+    this.deletedItems.set(this.container, containerDeletedItems);
+
+    this.createPermanentPlaceholder();
+    this.draggedItem.remove();
+    this.cleanup();
+  }
+
+  createPermanentPlaceholder() {
+    if (!this.placeholder) return;
+
+    const permanentPlaceholder = this.placeholder;
+    permanentPlaceholder.classList.add("permanent-deleted");
+    permanentPlaceholder.style.opacity = "0.4";
+    permanentPlaceholder.style.background = "rgba(255, 59, 48, 0.1)";
+    permanentPlaceholder.style.border = "2px dashed var(--accent-red)";
+    permanentPlaceholder.innerHTML = `
+      <div style="text-align: center; color: var(--accent-red);">
+        <i class="fas fa-trash" style="font-size: 1.5em; margin-bottom: 0.5rem;"></i>
+        <div style="font-size: 0.8em;">Deleted</div>
+      </div>
+    `;
+
+    permanentPlaceholder.addEventListener("click", () => {
+      this.restoreLastDeletedItem(this.container);
+    });
+
+    permanentPlaceholder.classList.add("draggable-item");
+    permanentPlaceholder.dataset.originalIndex = this.originalIndex;
+
+    this.placeholder = null;
+  }
+
+  restoreLastDeletedItem(container) {
+    const containerDeletedItems = this.deletedItems.get(container) || [];
+    if (containerDeletedItems.length === 0) return;
+
+    const lastDeleted = containerDeletedItems.pop();
+    this.deletedItems.set(container, containerDeletedItems);
+
+    if (lastDeleted && lastDeleted.element) {
+      const permanentPlaceholders =
+        container.querySelectorAll(".permanent-deleted");
+      permanentPlaceholders.forEach((placeholder) => {
+        placeholder.remove();
+      });
+
+      const currentItems = Array.from(container.children).filter(
+        (item) => !item.classList.contains("permanent-deleted")
+      );
+      let insertIndex = Math.min(
+        lastDeleted.originalIndex,
+        currentItems.length
+      );
+
+      if (currentItems.length === 0) {
+        container.appendChild(lastDeleted.element);
+      } else {
+        container.insertBefore(lastDeleted.element, currentItems[insertIndex]);
+      }
+
+      lastDeleted.element.classList.add("draggable-item");
+      this.triggerScrollAnimations();
+    }
+  }
+
+  initGlobalRestore() {
+    document.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "z") {
+        e.preventDefault();
+        this.restoreAllDeletedItems();
+      }
+    });
+  }
+
+  restoreAllDeletedItems() {
+    let restoredCount = 0;
+
+    this.deletedItems.forEach((deletedItems, container) => {
+      if (deletedItems.length > 0) {
+        const itemsToRestore = [...deletedItems].reverse();
+        itemsToRestore.forEach((item) => {
+          if (item && item.element) {
+            const permanentPlaceholders =
+              container.querySelectorAll(".permanent-deleted");
+            permanentPlaceholders.forEach((placeholder) => {
+              placeholder.remove();
+            });
+
+            const currentItems = Array.from(container.children).filter(
+              (item) => !item.classList.contains("permanent-deleted")
+            );
+            let insertIndex = Math.min(item.originalIndex, currentItems.length);
+
+            if (currentItems.length === 0) {
+              container.appendChild(item.element);
+            } else {
+              const targetIndex = Math.min(insertIndex, currentItems.length);
+              container.insertBefore(item.element, currentItems[targetIndex]);
+            }
+
+            item.element.classList.add("draggable-item");
+            restoredCount++;
+          }
+        });
+
+        this.deletedItems.set(container, []);
+      }
+    });
+
+    if (restoredCount > 0) {
+      this.triggerScrollAnimations();
+    }
+  }
+
   handleMouseDown(e) {
     if (!e.target.closest(".draggable-item")) return;
 
     const item = e.target.closest(".draggable-item");
+    if (item.classList.contains("permanent-deleted")) {
+      this.restoreLastDeletedItem(item.parentElement);
+      return;
+    }
+
     this.dragStartTime = Date.now();
     this.dragStartPosition = { x: e.clientX, y: e.clientY };
 
@@ -493,6 +666,11 @@ class DragDropManager {
 
     const touch = e.touches[0];
     const item = e.target.closest(".draggable-item");
+    if (item.classList.contains("permanent-deleted")) {
+      this.restoreLastDeletedItem(item.parentElement);
+      return;
+    }
+
     this.dragStartTime = Date.now();
     this.dragStartPosition = { x: touch.clientX, y: touch.clientY };
 
@@ -512,6 +690,8 @@ class DragDropManager {
     this.draggedItem = item;
     this.container = item.parentElement;
     this.isDragging = true;
+
+    this.floatingDeleteZone.classList.add("visible");
 
     const rect = item.getBoundingClientRect();
     this.itemWidth = rect.width;
@@ -563,6 +743,22 @@ class DragDropManager {
     }
 
     if (!this.isDragging) return;
+
+    const deleteZoneRect = this.floatingDeleteZone.getBoundingClientRect();
+    const isOverDeleteZone =
+      e.clientX >= deleteZoneRect.left &&
+      e.clientX <= deleteZoneRect.right &&
+      e.clientY >= deleteZoneRect.top &&
+      e.clientY <= deleteZoneRect.bottom;
+
+    if (isOverDeleteZone && !this.isOverDeleteZone) {
+      this.isOverDeleteZone = true;
+      this.floatingDeleteZone.classList.add("active");
+    } else if (!isOverDeleteZone && this.isOverDeleteZone) {
+      this.isOverDeleteZone = false;
+      this.floatingDeleteZone.classList.remove("active");
+    }
+
     this.updateDrag(e.clientX, e.clientY);
     e.preventDefault();
   }
@@ -583,7 +779,24 @@ class DragDropManager {
     }
 
     if (!this.isDragging) return;
+
     const touch = e.touches[0];
+
+    const deleteZoneRect = this.floatingDeleteZone.getBoundingClientRect();
+    const isOverDeleteZone =
+      touch.clientX >= deleteZoneRect.left &&
+      touch.clientX <= deleteZoneRect.right &&
+      touch.clientY >= deleteZoneRect.top &&
+      touch.clientY <= deleteZoneRect.bottom;
+
+    if (isOverDeleteZone && !this.isOverDeleteZone) {
+      this.isOverDeleteZone = true;
+      this.floatingDeleteZone.classList.add("active");
+    } else if (!isOverDeleteZone && this.isOverDeleteZone) {
+      this.isOverDeleteZone = false;
+      this.floatingDeleteZone.classList.remove("active");
+    }
+
     this.updateDrag(touch.clientX, touch.clientY);
     e.preventDefault();
   }
@@ -635,11 +848,20 @@ class DragDropManager {
       const itemRect = item.getBoundingClientRect();
       const itemCenterY = itemRect.top + itemRect.height / 2;
 
+      const isDeletedItem = item.classList.contains("permanent-deleted");
+      const snapDistance = isDeletedItem
+        ? this.snapThreshold * 2
+        : this.snapThreshold;
+
+      const distance = Math.abs(draggedCenterY - itemCenterY);
+
       targetPositions.push({
         item: item,
         index: index,
         centerY: itemCenterY,
-        distance: Math.abs(draggedCenterY - itemCenterY),
+        distance: distance,
+        isDeleted: isDeletedItem,
+        snapDistance: snapDistance,
       });
     });
 
@@ -653,6 +875,8 @@ class DragDropManager {
         distance: Math.abs(
           draggedCenterY - (firstRect.top - this.itemHeight / 2)
         ),
+        isDeleted: false,
+        snapDistance: this.snapThreshold,
       });
 
       const lastItem = items[items.length - 1];
@@ -664,12 +888,16 @@ class DragDropManager {
         distance: Math.abs(
           draggedCenterY - (lastRect.bottom + this.itemHeight / 2)
         ),
+        isDeleted: false,
+        snapDistance: this.snapThreshold,
       });
     }
 
     const validTargets = targetPositions.filter(
-      (target) => target.distance < this.snapThreshold
+      (target) => target.distance < target.snapDistance
     );
+
+    this.highlightNearbyDeletedItems(draggedRect);
 
     if (validTargets.length > 0) {
       validTargets.sort((a, b) => a.distance - b.distance);
@@ -684,6 +912,43 @@ class DragDropManager {
         this.currentTargetIndex = this.originalIndex;
         this.moveToOriginalPosition();
       }
+    }
+  }
+
+  highlightNearbyDeletedItems(draggedRect) {
+    this.container.classList.remove("drag-near-deleted");
+
+    const deletedItems = this.container.querySelectorAll(".permanent-deleted");
+    let isNearDeleted = false;
+
+    deletedItems.forEach((deletedItem) => {
+      const deletedRect = deletedItem.getBoundingClientRect();
+
+      const expandedTop = deletedRect.top - 40;
+      const expandedBottom = deletedRect.bottom + 40;
+      const expandedLeft = deletedRect.left - 40;
+      const expandedRight = deletedRect.right + 40;
+
+      const isNear =
+        draggedRect.bottom > expandedTop &&
+        draggedRect.top < expandedBottom &&
+        draggedRect.right > expandedLeft &&
+        draggedRect.left < expandedRight;
+
+      if (isNear) {
+        isNearDeleted = true;
+        deletedItem.style.borderColor = "var(--accent-light-red)";
+        deletedItem.style.background = "rgba(255, 59, 48, 0.2)";
+        deletedItem.style.transform = "scale(1.05)";
+      } else {
+        deletedItem.style.borderColor = "";
+        deletedItem.style.background = "";
+        deletedItem.style.transform = "";
+      }
+    });
+
+    if (isNearDeleted) {
+      this.container.classList.add("drag-near-deleted");
     }
   }
 
@@ -741,24 +1006,31 @@ class DragDropManager {
   }
 
   endDrag() {
-    if (this.dragTimeout) {
-      clearTimeout(this.dragTimeout);
-      this.dragTimeout = null;
-    }
-
-    if (!this.isDragging) return;
-
-    this.isDragging = false;
-
-    if (this.animationFrame) {
-      cancelAnimationFrame(this.animationFrame);
-    }
-
-    if (this.draggedItem && this.placeholder) {
-      this.snapToPosition();
+    if (this.isOverDeleteZone && this.draggedItem) {
+      this.deleteDraggedItem();
     } else {
-      this.cleanup();
+      if (this.dragTimeout) {
+        clearTimeout(this.dragTimeout);
+        this.dragTimeout = null;
+      }
+
+      if (!this.isDragging) return;
+
+      this.isDragging = false;
+
+      if (this.animationFrame) {
+        cancelAnimationFrame(this.animationFrame);
+      }
+
+      if (this.draggedItem && this.placeholder) {
+        this.snapToPosition();
+      } else {
+        this.cleanup();
+      }
     }
+
+    this.floatingDeleteZone.classList.remove("visible", "active");
+    this.isOverDeleteZone = false;
   }
 
   snapToPosition() {
@@ -792,6 +1064,17 @@ class DragDropManager {
   }
 
   cleanup() {
+    if (this.container) {
+      this.container.classList.remove("drag-near-deleted");
+      const deletedItems =
+        this.container.querySelectorAll(".permanent-deleted");
+      deletedItems.forEach((item) => {
+        item.style.borderColor = "";
+        item.style.background = "";
+        item.style.transform = "";
+      });
+    }
+
     if (this.draggedItem) {
       this.draggedItem.classList.remove("dragging");
       this.draggedItem.style.position = "";
@@ -836,6 +1119,11 @@ class DragDropManager {
     document.removeEventListener("touchmove", this.handleTouchMove);
     document.removeEventListener("touchend", this.handleTouchEnd);
     document.removeEventListener("selectstart", this.handleSelectStart);
+    document.removeEventListener("keydown", this.handleKeyDown);
+
+    if (this.floatingDeleteZone) {
+      this.floatingDeleteZone.remove();
+    }
   }
 }
 
@@ -843,6 +1131,7 @@ class DragDropManager {
 document.addEventListener("DOMContentLoaded", () => {
   setTimeout(() => {
     window.dragDropManager = new DragDropManager();
+    window.dragDropManager.initGlobalRestore();
   }, 100);
 });
 

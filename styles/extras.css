@@ -217,9 +217,9 @@
     }
 }
 
-/* ################## */
-/*  Item dragging UI  */
-/* ################## */
+/* ############################### */
+/*  Item dragging and deleting UI  */
+/* ############################### */
 .draggable-container {
     position: relative;
 }
@@ -247,10 +247,119 @@
     pointer-events: none;
 }
 
+/* Deleted item placeholder */
+.draggable-item.permanent-deleted {
+    opacity: 0.4 !important;
+    background: rgba(255, 59, 48, 0.1) !important;
+    border: 2px dashed var(--accent-red) !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-direction: column !important;
+    position: relative;
+}
+
+.draggable-item.permanent-deleted:hover {
+    opacity: 0.7 !important;
+    background: rgba(255, 59, 48, 0.2) !important;
+    transform: scale(1.02) !important;
+}
+
+.draggable-item.permanent-deleted .fa-trash {
+    font-size: 1.5em;
+    margin-bottom: 0.5rem;
+}
+
+/* Better drop zone for deleted items */
+.draggable-item.permanent-deleted::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: -20px;
+    right: -20px;
+    bottom: -20px;
+    background: transparent;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.draggable-container.drag-near-deleted .draggable-item.permanent-deleted {
+    border-color: var(--accent-light-red);
+    background: rgba(255, 59, 48, 0.2);
+    transform: scale(1.05);
+    transition: all 0.2s ease;
+}
+
+/* Floating delete zone */
+.floating-delete-zone {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary);
+    cursor: pointer;
+    z-index: 99;
+    box-shadow: var(--glass-shadow);
+    transition: var(--transition-smooth);
+    opacity: 0;
+    visibility: hidden;
+}
+
+.floating-delete-zone.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.floating-delete-zone.active {
+    background: linear-gradient(90deg, var(--accent-red), var(--accent-dark-red));
+    color: white;
+    transform: translateY(-5px);
+}
+
+.floating-delete-zone:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-5px);
+}
+
+.floating-delete-zone.active:hover {
+    background: linear-gradient(90deg, var(--accent-red), var(--accent-dark-red));
+    transform: translateY(-5px);
+}
+
 /* Mobile optimizations */
 @media (max-width: 768px) {
     .draggable-item.dragging {
         transform: scale(1.02) rotate(1deg);
+    }
+
+    .floating-delete-zone {
+        bottom: 20px;
+        left: 20px;
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* Fix for mobile hover state */
+@media (hover: none) {
+    .floating-delete-zone:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: none;
+    }
+
+    .floating-delete-zone.active:hover {
+        background: linear-gradient(90deg, var(--accent-red), var(--accent-dark-red));
+        transform: translateY(-5px);
     }
 }
 
