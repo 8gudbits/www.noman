@@ -427,6 +427,13 @@ class DragDropManager {
     this.deletedItems = new Map();
     this.floatingDeleteZone = null;
     this.isOverDeleteZone = false;
+    
+    // Touch-specific properties
+    this.isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    this.touchDragTimeout = null;
+    this.isPotentialDrag = false;
+    this.touchStartElement = null;
+    this.scrollDisabled = false;
 
     this.init();
   }
@@ -486,18 +493,49 @@ class DragDropManager {
     document.addEventListener("mousemove", this.handleMouseMove.bind(this));
     document.addEventListener("mouseup", this.handleMouseUp.bind(this));
 
-    document.addEventListener("touchstart", this.handleTouchStart.bind(this), {
-      passive: false,
-    });
-    document.addEventListener("touchmove", this.handleTouchMove.bind(this), {
-      passive: false,
-    });
-    document.addEventListener("touchend", this.handleTouchEnd.bind(this));
+    // Touch events with different handling for touch devices
+    if (this.isTouchDevice) {
+      document.addEventListener("touchstart", this.handleTouchStart.bind(this), {
+        passive: true
+      });
+      document.addEventListener("touchmove", this.handleTouchMove.bind(this), {
+        passive: false
+      });
+      document.addEventListener("touchend", this.handleTouchEnd.bind(this));
+      document.addEventListener("touchcancel", this.handleTouchEnd.bind(this));
+    } else {
+      // For non-touch devices
+      document.addEventListener("touchstart", this.handleTouchStart.bind(this), {
+        passive: false
+      });
+      document.addEventListener("touchmove", this.handleTouchMove.bind(this), {
+        passive: false
+      });
+      document.addEventListener("touchend", this.handleTouchEnd.bind(this));
+    }
 
     document.addEventListener("dragstart", (e) => e.preventDefault());
     document.addEventListener("selectstart", this.handleSelectStart.bind(this));
 
     document.addEventListener("keydown", this.handleKeyDown.bind(this));
+  }
+
+  // Disable scroll during drag on touch devices
+  disableScroll() {
+    if (!this.scrollDisabled) {
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      this.scrollDisabled = true;
+    }
+  }
+
+  // Enable scroll after drag on touch devices
+  enableScroll() {
+    if (this.scrollDisabled) {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      this.scrollDisabled = false;
+    }
   }
 
   handleSelectStart(e) {
@@ -661,30 +699,59 @@ class DragDropManager {
     e.preventDefault();
   }
 
+  // Touch start with delay-based drag initiation
   handleTouchStart(e) {
     if (!e.target.closest(".draggable-item")) return;
 
     const touch = e.touches[0];
     const item = e.target.closest(".draggable-item");
+    
     if (item.classList.contains("permanent-deleted")) {
       this.restoreLastDeletedItem(item.parentElement);
       return;
     }
 
+    this.touchStartElement = item;
     this.dragStartTime = Date.now();
     this.dragStartPosition = { x: touch.clientX, y: touch.clientY };
 
-    this.dragTimeout = setTimeout(() => {
-      this.startDrag(item, touch.clientX, touch.clientY);
-    }, 200);
+    // Set up drag timeout for touch devices
+    if (this.isTouchDevice) {
+      this.isPotentialDrag = true;
+      
+      // Clear any existing timeout
+      if (this.touchDragTimeout) {
+        clearTimeout(this.touchDragTimeout);
+      }
+      
+      // Set new timeout for drag initiation (500ms hold)
+      this.touchDragTimeout = setTimeout(() => {
+        if (this.isPotentialDrag && this.touchStartElement) {
+          this.startDrag(this.touchStartElement, touch.clientX, touch.clientY);
+          this.isPotentialDrag = false;
+        }
+      }, 500);
+    } else {
+      // Non-touch devices use shorter delay
+      this.dragTimeout = setTimeout(() => {
+        this.startDrag(item, touch.clientX, touch.clientY);
+      }, 200);
+    }
 
-    e.preventDefault();
+    if (!this.isTouchDevice) {
+      e.preventDefault();
+    }
   }
 
   startDrag(item, clientX, clientY) {
     if (this.dragTimeout) {
       clearTimeout(this.dragTimeout);
       this.dragTimeout = null;
+    }
+    
+    if (this.touchDragTimeout) {
+      clearTimeout(this.touchDragTimeout);
+      this.touchDragTimeout = null;
     }
 
     this.draggedItem = item;
@@ -709,6 +776,11 @@ class DragDropManager {
     this.createPlaceholder();
     item.classList.add("dragging");
     this.updateItemPosition(clientX, clientY);
+
+    // Disable scroll on touch devices when dragging starts
+    if (this.isTouchDevice) {
+      this.disableScroll();
+    }
 
     setTimeout(() => {
       if (this.placeholder) {
@@ -763,19 +835,29 @@ class DragDropManager {
     e.preventDefault();
   }
 
+  // Touch move with scroll prevention during drag
   handleTouchMove(e) {
-    if (this.dragTimeout && !this.isDragging) {
+    // If we're potentially starting a drag but haven't initiated yet
+    if (this.isPotentialDrag && !this.isDragging) {
       const touch = e.touches[0];
       const moveDistance = Math.sqrt(
         Math.pow(touch.clientX - this.dragStartPosition.x, 2) +
           Math.pow(touch.clientY - this.dragStartPosition.y, 2)
       );
 
+      // If user moved too much during the hold period, cancel potential drag
       if (moveDistance > 15) {
-        clearTimeout(this.dragTimeout);
-        this.dragTimeout = null;
-        return;
+        this.isPotentialDrag = false;
+        if (this.touchDragTimeout) {
+          clearTimeout(this.touchDragTimeout);
+          this.touchDragTimeout = null;
+        }
+        return; // Allow normal scrolling
       }
+      
+      // Prevent default only if we're still in potential drag state
+      e.preventDefault();
+      return;
     }
 
     if (!this.isDragging) return;
@@ -1001,7 +1083,19 @@ class DragDropManager {
     this.endDrag();
   }
 
+  // Touch end with cleanup
   handleTouchEnd(e) {
+    // If we were in potential drag state but didn't start dragging, clean up
+    if (this.isPotentialDrag && !this.isDragging) {
+      this.isPotentialDrag = false;
+      if (this.touchDragTimeout) {
+        clearTimeout(this.touchDragTimeout);
+        this.touchDragTimeout = null;
+      }
+      this.touchStartElement = null;
+      return;
+    }
+
     this.endDrag();
   }
 
@@ -1012,6 +1106,11 @@ class DragDropManager {
       if (this.dragTimeout) {
         clearTimeout(this.dragTimeout);
         this.dragTimeout = null;
+      }
+      
+      if (this.touchDragTimeout) {
+        clearTimeout(this.touchDragTimeout);
+        this.touchDragTimeout = null;
       }
 
       if (!this.isDragging) return;
@@ -1029,8 +1128,15 @@ class DragDropManager {
       }
     }
 
+    // Re-enable scroll on touch devices
+    if (this.isTouchDevice) {
+      this.enableScroll();
+    }
+
     this.floatingDeleteZone.classList.remove("visible", "active");
     this.isOverDeleteZone = false;
+    this.isPotentialDrag = false;
+    this.touchStartElement = null;
   }
 
   snapToPosition() {
@@ -1124,6 +1230,9 @@ class DragDropManager {
     if (this.floatingDeleteZone) {
       this.floatingDeleteZone.remove();
     }
+    
+    // Ensure scroll is re-enabled
+    this.enableScroll();
   }
 }
 

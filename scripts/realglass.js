@@ -463,6 +463,7 @@
       this.clickCount = 0;
       this.canvases = [];
       this.currentCenter = null;
+      this.crackProbability = 0; // Start with 0% chance of cracking
       this.init();
     }
 
@@ -506,13 +507,32 @@
 
       this.clickCount++;
 
-      // Click 1: Do nothing (get a pass)
-      // Click 2: Create one crack
-      // Click 3: Create one crack
-      // Click 4: Create one crack
-      // Click 5: Create one crack ...
+      // PROBABILITY-BASED CRACKING SYSTEM:
+      // Click 1: 0% chance (no crack)
+      // Click 2: 50% chance
+      // Click 3: 60% chance (50% + 10%)
+      // Click 4: 70% chance
+      // Click 5: 80% chance
+      // Click 6: 90% chance
+      // Click 7+: 100% chance
 
-      if (this.clickCount >= 2) {
+      if (this.clickCount === 1) {
+        return; // First click: 0% chance, do nothing
+      }
+
+      // Calculate probability based on click count
+      if (this.clickCount === 2) {
+        this.crackProbability = 0.5;
+      } else if (this.clickCount > 2 && this.clickCount <= 6) {
+        this.crackProbability = 0.5 + (this.clickCount - 2) * 0.1; // +10% each click
+      } else if (this.clickCount > 6) {
+        this.crackProbability = 1.0; // 100% chance after 6 clicks
+      }
+
+      const randomValue = Math.random();
+      const willCrack = randomValue <= this.crackProbability;
+
+      if (willCrack) {
         this.createCrack();
       }
     }

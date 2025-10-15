@@ -226,7 +226,7 @@
 
 .draggable-item {
     position: relative;
-    touch-action: none;
+    touch-action: auto;
 }
 
 .draggable-item.dragging {
