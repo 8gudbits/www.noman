@@ -266,13 +266,101 @@ function showSpeedToast() {
         document.body.removeChild(toast);
       }
     }, 300);
-  }, 3500);
+  }, 8000);
 }
 
 window.addEventListener("load", initializeScrollTracking);
 if (document.readyState === "complete") {
   initializeScrollTracking();
 }
+
+// ########################### //
+//  Developer Tools detection  //
+// ########################### //
+(function () {
+  let devtoolsOpen = false;
+  let toast = null;
+
+  function showDevToolsToast() {
+    // Don't show multiple toasts
+    if (toast && document.body.contains(toast)) return;
+
+    toast = document.createElement("div");
+    toast.className = "devtools-toast";
+    toast.innerHTML = `
+            <p>The source code of this page is readily available at:</p>
+            <a href="https://github.com/8gudbits/noman" target="_blank">github.com/8gudbits/noman</a>
+            <p>You can check it out there...</p>
+        `;
+
+    document.body.appendChild(toast);
+
+    // Animate in
+    setTimeout(() => {
+      toast.classList.add("show");
+    }, 100);
+
+    // Auto-hide after 8 seconds
+    setTimeout(() => {
+      if (toast && document.body.contains(toast)) {
+        hideDevToolsToast();
+      }
+    }, 8000);
+
+    // Also hide on click
+    toast.addEventListener("click", hideDevToolsToast);
+  }
+
+  function hideDevToolsToast() {
+    if (toast && document.body.contains(toast)) {
+      toast.classList.remove("show");
+      setTimeout(() => {
+        if (toast && document.body.contains(toast)) {
+          document.body.removeChild(toast);
+        }
+        toast = null;
+      }, 500);
+    }
+  }
+
+  // Method 1: Check console size (most reliable)
+  const threshold = 160;
+  const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+  const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+
+  if (widthThreshold || heightThreshold) {
+    showDevToolsToast();
+    devtoolsOpen = true;
+  }
+
+  // Method 2: Listen for debugger statements
+  let element = new Image();
+  Object.defineProperty(element, "id", {
+    get: function () {
+      if (!devtoolsOpen) {
+        showDevToolsToast();
+        devtoolsOpen = true;
+      }
+    },
+  });
+
+  console.log("%c", element);
+
+  // Method 3: Check for resize (devtools opening/closing)
+  window.addEventListener("resize", function () {
+    setTimeout(function () {
+      const widthCheck = window.outerWidth - window.innerWidth > threshold;
+      const heightCheck = window.outerHeight - window.innerHeight > threshold;
+
+      if ((widthCheck || heightCheck) && !devtoolsOpen) {
+        showDevToolsToast();
+        devtoolsOpen = true;
+      } else if (!widthCheck && !heightCheck && devtoolsOpen) {
+        devtoolsOpen = false;
+      }
+    }, 500);
+  });
+})();
 
 // ###################### //
 //  Sleep mode animation  //
@@ -427,9 +515,10 @@ class DragDropManager {
     this.deletedItems = new Map();
     this.floatingDeleteZone = null;
     this.isOverDeleteZone = false;
-    
+
     // Touch-specific properties
-    this.isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    this.isTouchDevice =
+      "ontouchstart" in window || navigator.maxTouchPoints > 0;
     this.touchDragTimeout = null;
     this.isPotentialDrag = false;
     this.touchStartElement = null;
@@ -495,21 +584,29 @@ class DragDropManager {
 
     // Touch events with different handling for touch devices
     if (this.isTouchDevice) {
-      document.addEventListener("touchstart", this.handleTouchStart.bind(this), {
-        passive: true
-      });
+      document.addEventListener(
+        "touchstart",
+        this.handleTouchStart.bind(this),
+        {
+          passive: true,
+        }
+      );
       document.addEventListener("touchmove", this.handleTouchMove.bind(this), {
-        passive: false
+        passive: false,
       });
       document.addEventListener("touchend", this.handleTouchEnd.bind(this));
       document.addEventListener("touchcancel", this.handleTouchEnd.bind(this));
     } else {
       // For non-touch devices
-      document.addEventListener("touchstart", this.handleTouchStart.bind(this), {
-        passive: false
-      });
+      document.addEventListener(
+        "touchstart",
+        this.handleTouchStart.bind(this),
+        {
+          passive: false,
+        }
+      );
       document.addEventListener("touchmove", this.handleTouchMove.bind(this), {
-        passive: false
+        passive: false,
       });
       document.addEventListener("touchend", this.handleTouchEnd.bind(this));
     }
@@ -523,8 +620,8 @@ class DragDropManager {
   // Disable scroll during drag on touch devices
   disableScroll() {
     if (!this.scrollDisabled) {
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
       this.scrollDisabled = true;
     }
   }
@@ -532,8 +629,8 @@ class DragDropManager {
   // Enable scroll after drag on touch devices
   enableScroll() {
     if (this.scrollDisabled) {
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
       this.scrollDisabled = false;
     }
   }
@@ -705,7 +802,7 @@ class DragDropManager {
 
     const touch = e.touches[0];
     const item = e.target.closest(".draggable-item");
-    
+
     if (item.classList.contains("permanent-deleted")) {
       this.restoreLastDeletedItem(item.parentElement);
       return;
@@ -718,12 +815,12 @@ class DragDropManager {
     // Set up drag timeout for touch devices
     if (this.isTouchDevice) {
       this.isPotentialDrag = true;
-      
+
       // Clear any existing timeout
       if (this.touchDragTimeout) {
         clearTimeout(this.touchDragTimeout);
       }
-      
+
       // Set new timeout for drag initiation (500ms hold)
       this.touchDragTimeout = setTimeout(() => {
         if (this.isPotentialDrag && this.touchStartElement) {
@@ -748,7 +845,7 @@ class DragDropManager {
       clearTimeout(this.dragTimeout);
       this.dragTimeout = null;
     }
-    
+
     if (this.touchDragTimeout) {
       clearTimeout(this.touchDragTimeout);
       this.touchDragTimeout = null;
@@ -854,7 +951,7 @@ class DragDropManager {
         }
         return; // Allow normal scrolling
       }
-      
+
       // Prevent default only if we're still in potential drag state
       e.preventDefault();
       return;
@@ -1107,7 +1204,7 @@ class DragDropManager {
         clearTimeout(this.dragTimeout);
         this.dragTimeout = null;
       }
-      
+
       if (this.touchDragTimeout) {
         clearTimeout(this.touchDragTimeout);
         this.touchDragTimeout = null;
@@ -1230,7 +1327,7 @@ class DragDropManager {
     if (this.floatingDeleteZone) {
       this.floatingDeleteZone.remove();
     }
-    
+
     // Ensure scroll is re-enabled
     this.enableScroll();
   }
