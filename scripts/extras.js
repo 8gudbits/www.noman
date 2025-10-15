@@ -8,15 +8,15 @@ console.log(
   "font-size: 18px; font-weight: bold; color: #ff3b30; background: #222; padding: 4px 8px; border-radius: 4px;"
 );
 
-let devToolsTimer;
+let devToolsDetectionTimer;
 
-function checkDevTools() {
+function detectDevToolsOpen() {
   const widthThreshold = window.outerWidth - window.innerWidth > 160;
   const heightThreshold = window.outerHeight - window.innerHeight > 160;
 
   if (widthThreshold || heightThreshold) {
-    if (!devToolsTimer) {
-      devToolsTimer = setTimeout(() => {
+    if (!devToolsDetectionTimer) {
+      devToolsDetectionTimer = setTimeout(() => {
         console.log(
           "%cAnother presence has joined you. They're quiet... for now.",
           "font-size: 18px; font-weight: bold; color: #ff3b30; background: #222; padding: 8px 12px; border-radius: 6px;"
@@ -24,12 +24,12 @@ function checkDevTools() {
       }, 15000);
     }
   } else {
-    clearTimeout(devToolsTimer);
-    devToolsTimer = null;
+    clearTimeout(devToolsDetectionTimer);
+    devToolsDetectionTimer = null;
   }
 }
 
-setInterval(checkDevTools, 1000);
+setInterval(detectDevToolsOpen, 1000);
 
 // ##################### //
 //  GitHub link tooltip  //
@@ -67,69 +67,69 @@ document.addEventListener("visibilitychange", function () {
 // #################### //
 //  Hero section toast  //
 // #################### //
-let heroTimer;
-let toast = null;
+let heroIdleTimer;
+let heroToast = null;
 
-function checkHeroSection() {
+function monitorHeroSectionIdle() {
   const heroSection = document.querySelector(".hero-section");
   const scrollY = window.scrollY;
   const heroHeight = heroSection.offsetHeight;
 
   if (scrollY < heroHeight * 0.8) {
-    if (!heroTimer && !toast) {
-      heroTimer = setTimeout(() => {
-        showToast();
+    if (!heroIdleTimer && !heroToast) {
+      heroIdleTimer = setTimeout(() => {
+        displayHeroIdleToast();
       }, 15000);
     }
   } else {
-    clearTimeout(heroTimer);
-    heroTimer = null;
+    clearTimeout(heroIdleTimer);
+    heroIdleTimer = null;
   }
 }
 
-function showToast() {
-  toast = document.createElement("div");
-  toast.className = "hero-toast";
-  toast.textContent =
+function displayHeroIdleToast() {
+  heroToast = document.createElement("div");
+  heroToast.className = "hero-toast";
+  heroToast.textContent =
     "You have been staring at this part of the page for way too long. Come on, scroll now... :))";
-  document.body.appendChild(toast);
+  document.body.appendChild(heroToast);
 
   setTimeout(() => {
-    toast.classList.add("show");
+    heroToast.classList.add("show");
   }, 100);
 }
 
-function hideToast() {
-  if (toast && document.body.contains(toast)) {
-    toast.classList.remove("show");
+function removeHeroToast() {
+  if (heroToast && document.body.contains(heroToast)) {
+    heroToast.classList.remove("show");
     setTimeout(() => {
-      if (toast && document.body.contains(toast)) {
-        document.body.removeChild(toast);
+      if (heroToast && document.body.contains(heroToast)) {
+        document.body.removeChild(heroToast);
       }
-      toast = null;
+      heroToast = null;
     }, 500);
   } else {
-    toast = null;
+    heroToast = null;
   }
 }
 
 window.addEventListener("scroll", function () {
-  if (toast && document.body.contains(toast)) {
-    hideToast();
+  if (heroToast && document.body.contains(heroToast)) {
+    removeHeroToast();
   }
-  clearTimeout(heroTimer);
-  heroTimer = null;
+  clearTimeout(heroIdleTimer);
+  heroIdleTimer = null;
 });
 
-checkHeroSection();
+monitorHeroSectionIdle();
 
 // ##################### //
 //  About section toast  //
 // ##################### //
-let aboutTimer;
+let aboutViewTimer;
 let aboutToastShown = false;
 
-function checkAboutSection() {
+function monitorAboutSectionView() {
   if (aboutToastShown) return;
 
   const aboutSection = document.querySelector("#about");
@@ -139,18 +139,18 @@ function checkAboutSection() {
     aboutRect.top < window.innerHeight * 0.8 &&
     aboutRect.bottom > window.innerHeight * 0.2
   ) {
-    if (!aboutTimer) {
-      aboutTimer = setTimeout(() => {
-        showAboutToast();
+    if (!aboutViewTimer) {
+      aboutViewTimer = setTimeout(() => {
+        displayAboutSectionToast();
       }, 10000);
     }
   } else {
-    clearTimeout(aboutTimer);
-    aboutTimer = null;
+    clearTimeout(aboutViewTimer);
+    aboutViewTimer = null;
   }
 }
 
-function showAboutToast() {
+function displayAboutSectionToast() {
   aboutToastShown = true;
   const toast = document.createElement("div");
   toast.className = "about-toast";
@@ -175,40 +175,41 @@ function showAboutToast() {
   window.addEventListener("scroll", hideOnScroll);
 }
 
-window.addEventListener("scroll", checkAboutSection);
-checkAboutSection();
+window.addEventListener("scroll", monitorAboutSectionView);
+monitorAboutSectionView();
 
 // ########################## //
 //  Speed toast notification  //
 // ########################## //
-const SCROLL_THRESHOLD = 1200; // pixels of fast scrolling required
+const SCROLL_THRESHOLD = 1250; // pixels of fast scrolling required
 const SCROLL_SPEED_THRESHOLD = 0.8; // pixels per millisecond
 const COOLDOWN_TIME = 10000; // 10 seconds in milliseconds
 const RESET_AMOUNT = 50; // pixels to reset when not fast scrolling
 
-let lastScrollTop = 0;
+let previousScrollPosition = 0;
 let lastScrollTime = Date.now();
-let fastScrollDistance = 0;
+let rapidScrollDistance = 0;
 let lastToastTime = 0;
-let isCoolingDown = false;
+let isToastCooldown = false;
 
-function initializeScrollTracking() {
+function setupScrollSpeedTracking() {
   // Set the initial scroll position to the current restored position
-  lastScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  previousScrollPosition =
+    window.pageYOffset || document.documentElement.scrollTop;
   lastScrollTime = Date.now();
 
   //Start listening to scroll events
-  window.addEventListener("scroll", checkScrollSpeed);
+  window.addEventListener("scroll", measureScrollVelocity);
 }
 
-function checkScrollSpeed() {
+function measureScrollVelocity() {
   const currentTime = Date.now();
 
-  // Check if we're in cooldown period
-  if (isCoolingDown && currentTime - lastToastTime < COOLDOWN_TIME) {
+  // Check if on cooldown period
+  if (isToastCooldown && currentTime - lastToastTime < COOLDOWN_TIME) {
     return;
-  } else if (isCoolingDown) {
-    isCoolingDown = false;
+  } else if (isToastCooldown) {
+    isToastCooldown = false;
   }
 
   const currentScrollTop =
@@ -216,29 +217,29 @@ function checkScrollSpeed() {
   const timeDiff = currentTime - lastScrollTime;
 
   if (timeDiff > 0) {
-    const scrollDistance = currentScrollTop - lastScrollTop;
+    const scrollDistance = currentScrollTop - previousScrollPosition;
     const scrollSpeed = Math.abs(scrollDistance) / timeDiff;
 
     // Only track when scrolling down
     if (scrollDistance > 0 && scrollSpeed > SCROLL_SPEED_THRESHOLD) {
-      fastScrollDistance += scrollDistance;
+      rapidScrollDistance += scrollDistance;
 
-      if (fastScrollDistance > SCROLL_THRESHOLD) {
-        showSpeedToast();
-        fastScrollDistance = 0;
+      if (rapidScrollDistance > SCROLL_THRESHOLD) {
+        displaySpeedWarningToast();
+        rapidScrollDistance = 0;
         lastToastTime = currentTime;
-        isCoolingDown = true;
+        isToastCooldown = true;
       }
     } else {
-      fastScrollDistance = Math.max(0, fastScrollDistance - RESET_AMOUNT);
+      rapidScrollDistance = Math.max(0, rapidScrollDistance - RESET_AMOUNT);
     }
   }
 
-  lastScrollTop = currentScrollTop;
+  previousScrollPosition = currentScrollTop;
   lastScrollTime = currentTime;
 }
 
-function showSpeedToast() {
+function displaySpeedWarningToast() {
   const toast = document.createElement("div");
   toast.className = "speed-toast";
   toast.textContent =
@@ -269,56 +270,56 @@ function showSpeedToast() {
   }, 8000);
 }
 
-window.addEventListener("load", initializeScrollTracking);
+window.addEventListener("load", setupScrollSpeedTracking);
 if (document.readyState === "complete") {
-  initializeScrollTracking();
+  setupScrollSpeedTracking();
 }
 
 // ########################### //
 //  Developer Tools detection  //
 // ########################### //
 (function () {
-  let devtoolsOpen = false;
-  let toast = null;
+  let isDevToolsOpen = false;
+  let devToolsToast = null;
 
-  function showDevToolsToast() {
+  function displayDevToolsSourceToast() {
     // Don't show multiple toasts
-    if (toast && document.body.contains(toast)) return;
+    if (devToolsToast && document.body.contains(devToolsToast)) return;
 
-    toast = document.createElement("div");
-    toast.className = "devtools-toast";
-    toast.innerHTML = `
+    devToolsToast = document.createElement("div");
+    devToolsToast.className = "devtools-toast";
+    devToolsToast.innerHTML = `
             <p>The source code of this page is readily available at:</p>
             <a href="https://github.com/8gudbits/noman" target="_blank">github.com/8gudbits/noman</a>
             <p>You can check it out there...</p>
         `;
 
-    document.body.appendChild(toast);
+    document.body.appendChild(devToolsToast);
 
     // Animate in
     setTimeout(() => {
-      toast.classList.add("show");
+      devToolsToast.classList.add("show");
     }, 100);
 
     // Auto-hide after 8 seconds
     setTimeout(() => {
-      if (toast && document.body.contains(toast)) {
-        hideDevToolsToast();
+      if (devToolsToast && document.body.contains(devToolsToast)) {
+        removeDevToolsToast();
       }
     }, 8000);
 
     // Also hide on click
-    toast.addEventListener("click", hideDevToolsToast);
+    devToolsToast.addEventListener("click", removeDevToolsToast);
   }
 
-  function hideDevToolsToast() {
-    if (toast && document.body.contains(toast)) {
-      toast.classList.remove("show");
+  function removeDevToolsToast() {
+    if (devToolsToast && document.body.contains(devToolsToast)) {
+      devToolsToast.classList.remove("show");
       setTimeout(() => {
-        if (toast && document.body.contains(toast)) {
-          document.body.removeChild(toast);
+        if (devToolsToast && document.body.contains(devToolsToast)) {
+          document.body.removeChild(devToolsToast);
         }
-        toast = null;
+        devToolsToast = null;
       }, 500);
     }
   }
@@ -329,17 +330,17 @@ if (document.readyState === "complete") {
   const heightThreshold = window.outerHeight - window.innerHeight > threshold;
 
   if (widthThreshold || heightThreshold) {
-    showDevToolsToast();
-    devtoolsOpen = true;
+    displayDevToolsSourceToast();
+    isDevToolsOpen = true;
   }
 
   // Method 2: Listen for debugger statements
   let element = new Image();
   Object.defineProperty(element, "id", {
     get: function () {
-      if (!devtoolsOpen) {
-        showDevToolsToast();
-        devtoolsOpen = true;
+      if (!isDevToolsOpen) {
+        displayDevToolsSourceToast();
+        isDevToolsOpen = true;
       }
     },
   });
@@ -352,11 +353,11 @@ if (document.readyState === "complete") {
       const widthCheck = window.outerWidth - window.innerWidth > threshold;
       const heightCheck = window.outerHeight - window.innerHeight > threshold;
 
-      if ((widthCheck || heightCheck) && !devtoolsOpen) {
-        showDevToolsToast();
-        devtoolsOpen = true;
-      } else if (!widthCheck && !heightCheck && devtoolsOpen) {
-        devtoolsOpen = false;
+      if ((widthCheck || heightCheck) && !isDevToolsOpen) {
+        displayDevToolsSourceToast();
+        isDevToolsOpen = true;
+      } else if (!widthCheck && !heightCheck && isDevToolsOpen) {
+        isDevToolsOpen = false;
       }
     }, 500);
   });
@@ -365,17 +366,17 @@ if (document.readyState === "complete") {
 // ###################### //
 //  Sleep mode animation  //
 // ###################### //
-let sleepTimer;
-let blankTimer;
-let heartbeatTimer;
-let overlay = null;
+let inactivitySleepTimer;
+let screenBlankTimer;
+let heartbeatDisplayTimer;
+let sleepOverlay = null;
 
-function initSleepMode() {
-  overlay = document.createElement("div");
-  overlay.className = "sleep-overlay";
+function initializeInactivitySleep() {
+  sleepOverlay = document.createElement("div");
+  sleepOverlay.className = "sleep-overlay";
 
   // Create heartbeat monitor HTML
-  overlay.innerHTML = `
+  sleepOverlay.innerHTML = `
         <div class="heart-rate">
             <svg
                 version="1.0"
@@ -397,71 +398,71 @@ function initSleepMode() {
         </div>
     `;
 
-  document.body.appendChild(overlay);
-  resetSleepTimers();
+  document.body.appendChild(sleepOverlay);
+  resetInactivityTimers();
 
   // Reset timers on any interaction
-  document.addEventListener("mousemove", wakePage);
-  document.addEventListener("keydown", wakePage);
-  document.addEventListener("click", wakePage);
-  document.addEventListener("scroll", wakePage);
-  document.addEventListener("touchstart", wakePage);
+  document.addEventListener("mousemove", wakeFromSleepMode);
+  document.addEventListener("keydown", wakeFromSleepMode);
+  document.addEventListener("click", wakeFromSleepMode);
+  document.addEventListener("scroll", wakeFromSleepMode);
+  document.addEventListener("touchstart", wakeFromSleepMode);
 }
 
-function resetSleepTimers() {
-  clearTimeout(sleepTimer);
-  clearTimeout(blankTimer);
-  clearTimeout(heartbeatTimer);
+function resetInactivityTimers() {
+  clearTimeout(inactivitySleepTimer);
+  clearTimeout(screenBlankTimer);
+  clearTimeout(heartbeatDisplayTimer);
 
-  sleepTimer = setTimeout(() => {
-    startSleepAnimation();
+  inactivitySleepTimer = setTimeout(() => {
+    beginSleepSequence();
   }, 50000); // 50 seconds until sleep starts
 }
 
-function startSleepAnimation() {
-  overlay.classList.add("blur");
+function beginSleepSequence() {
+  sleepOverlay.classList.add("blur");
 
-  blankTimer = setTimeout(() => {
-    overlay.classList.remove("blur");
-    overlay.classList.add("blank");
+  screenBlankTimer = setTimeout(() => {
+    sleepOverlay.classList.remove("blur");
+    sleepOverlay.classList.add("blank");
 
     // Show heartbeat after blank screen
-    heartbeatTimer = setTimeout(() => {
-      overlay.classList.add("show-heartbeat");
+    heartbeatDisplayTimer = setTimeout(() => {
+      sleepOverlay.classList.add("show-heartbeat");
     }, 8000); // 8 seconds after going blank
   }, 5000); // 5 seconds of blur
 }
 
-function wakePage() {
+function wakeFromSleepMode() {
   // Remove all sleep-related classes
-  overlay.classList.remove("blur", "blank", "show-heartbeat");
-  overlay.classList.add("waking");
+  sleepOverlay.classList.remove("blur", "blank", "show-heartbeat");
+  sleepOverlay.classList.add("waking");
 
   setTimeout(() => {
-    overlay.classList.remove("waking");
+    sleepOverlay.classList.remove("waking");
   }, 300);
 
-  resetSleepTimers();
+  resetInactivityTimers();
 }
 
-document.addEventListener("DOMContentLoaded", initSleepMode);
+document.addEventListener("DOMContentLoaded", initializeInactivitySleep);
 
 // Keep screen on for 1.5 minutes of inactivity
 let wakeLock = null;
-let idleTimer = null;
+let inactivityTimer = null;
 const idleTime = 90000;
 
-function startIdleTimer() {
-  if (idleTimer) clearTimeout(idleTimer);
+function startInactivityTimer() {
+  if (inactivityTimer) clearTimeout(inactivityTimer);
   if (wakeLock) {
     wakeLock.release();
     wakeLock = null;
   }
 
-  idleTimer = setTimeout(keepScreenOn, idleTime);
+  inactivityTimer = setTimeout(preventScreenSleep, idleTime);
 }
 
-async function keepScreenOn() {
+async function preventScreenSleep() {
   if (!/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)) return;
 
   try {
@@ -487,22 +488,22 @@ const events = [
   "click",
 ];
 events.forEach((event) => {
-  document.addEventListener(event, startIdleTimer);
+  document.addEventListener(event, startInactivityTimer);
 });
 
-startIdleTimer();
+startInactivityTimer();
 
 // ################################ //
 // Item dragging and deleting logic //
 // ################################ //
-class DragDropManager {
+class ItemDragManager {
   constructor() {
-    this.draggedItem = null;
-    this.dragOffset = { x: 0, y: 0 };
+    this.currentlyDraggedItem = null;
+    this.dragStartOffset = { x: 0, y: 0 };
     this.placeholder = null;
     this.originalIndex = null;
     this.container = null;
-    this.isDragging = false;
+    this.isItemBeingDragged = false;
     this.snapThreshold = 60;
     this.animationFrame = null;
     this.itemWidth = 0;
@@ -517,11 +518,11 @@ class DragDropManager {
     this.isOverDeleteZone = false;
 
     // Touch-specific properties
-    this.isTouchDevice =
+    this.isTouchCapableDevice =
       "ontouchstart" in window || navigator.maxTouchPoints > 0;
     this.touchDragTimeout = null;
-    this.isPotentialDrag = false;
-    this.touchStartElement = null;
+    this.isPotentialDragAction = false;
+    this.initialTouchElement = null;
     this.scrollDisabled = false;
 
     this.init();
@@ -529,8 +530,8 @@ class DragDropManager {
 
   init() {
     this.setupContainers();
-    this.createFloatingDeleteZone();
-    this.bindEvents();
+    this.createDragDeleteZone();
+    this.attachDragEventListeners();
   }
 
   setupContainers() {
@@ -546,13 +547,13 @@ class DragDropManager {
     containerSelectors.forEach((selector) => {
       const container = document.querySelector(selector);
       if (container) {
-        this.makeContainerDraggable(container);
+        this.enableContainerDragDrop(container);
         this.deletedItems.set(container, []);
       }
     });
   }
 
-  makeContainerDraggable(container) {
+  enableContainerDragDrop(container) {
     container.classList.add("draggable-container", "draggable-grid");
 
     const items = container.children;
@@ -564,26 +565,26 @@ class DragDropManager {
     });
   }
 
-  createFloatingDeleteZone() {
+  createDragDeleteZone() {
     this.floatingDeleteZone = document.createElement("div");
     this.floatingDeleteZone.className = "floating-delete-zone";
     this.floatingDeleteZone.innerHTML = `<i class="fas fa-trash"></i>`;
     document.body.appendChild(this.floatingDeleteZone);
 
     this.floatingDeleteZone.addEventListener("click", () => {
-      if (this.isDragging && this.draggedItem) {
-        this.deleteDraggedItem();
+      if (this.isItemBeingDragged && this.currentlyDraggedItem) {
+        this.removeDraggedItem();
       }
     });
   }
 
-  bindEvents() {
+  attachDragEventListeners() {
     document.addEventListener("mousedown", this.handleMouseDown.bind(this));
     document.addEventListener("mousemove", this.handleMouseMove.bind(this));
     document.addEventListener("mouseup", this.handleMouseUp.bind(this));
 
     // Touch events with different handling for touch devices
-    if (this.isTouchDevice) {
+    if (this.isTouchCapableDevice) {
       document.addEventListener(
         "touchstart",
         this.handleTouchStart.bind(this),
@@ -618,7 +619,7 @@ class DragDropManager {
   }
 
   // Disable scroll during drag on touch devices
-  disableScroll() {
+  preventPageScroll() {
     if (!this.scrollDisabled) {
       document.body.style.overflow = "hidden";
       document.documentElement.style.overflow = "hidden";
@@ -627,7 +628,7 @@ class DragDropManager {
   }
 
   // Enable scroll after drag on touch devices
-  enableScroll() {
+  restorePageScroll() {
     if (this.scrollDisabled) {
       document.body.style.overflow = "";
       document.documentElement.style.overflow = "";
@@ -642,21 +643,21 @@ class DragDropManager {
   }
 
   handleKeyDown(e) {
-    if (!this.isDragging || !this.draggedItem) return;
+    if (!this.isItemBeingDragged || !this.currentlyDraggedItem) return;
 
     const deleteKeys = ["Escape", "Delete", "Backspace"];
     if (deleteKeys.includes(e.key)) {
       e.preventDefault();
       e.stopPropagation();
-      this.deleteDraggedItem();
+      this.removeDraggedItem();
     }
   }
 
-  deleteDraggedItem() {
-    if (!this.draggedItem || !this.container) return;
+  removeDraggedItem() {
+    if (!this.currentlyDraggedItem || !this.container) return;
 
     const deletedItem = {
-      element: this.draggedItem,
+      element: this.currentlyDraggedItem,
       originalIndex: this.originalIndex,
       container: this.container,
     };
@@ -665,12 +666,12 @@ class DragDropManager {
     containerDeletedItems.push(deletedItem);
     this.deletedItems.set(this.container, containerDeletedItems);
 
-    this.createPermanentPlaceholder();
-    this.draggedItem.remove();
-    this.cleanup();
+    this.createDeletedItemMarker();
+    this.currentlyDraggedItem.remove();
+    this.resetDragState();
   }
 
-  createPermanentPlaceholder() {
+  createDeletedItemMarker() {
     if (!this.placeholder) return;
 
     const permanentPlaceholder = this.placeholder;
@@ -686,7 +687,7 @@ class DragDropManager {
     `;
 
     permanentPlaceholder.addEventListener("click", () => {
-      this.restoreLastDeletedItem(this.container);
+      this.restoreRecentlyDeletedItem(this.container);
     });
 
     permanentPlaceholder.classList.add("draggable-item");
@@ -695,7 +696,7 @@ class DragDropManager {
     this.placeholder = null;
   }
 
-  restoreLastDeletedItem(container) {
+  restoreRecentlyDeletedItem(container) {
     const containerDeletedItems = this.deletedItems.get(container) || [];
     if (containerDeletedItems.length === 0) return;
 
@@ -732,12 +733,12 @@ class DragDropManager {
     document.addEventListener("keydown", (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "z") {
         e.preventDefault();
-        this.restoreAllDeletedItems();
+        this.restoreAllRemovedItems();
       }
     });
   }
 
-  restoreAllDeletedItems() {
+  restoreAllRemovedItems() {
     let restoredCount = 0;
 
     this.deletedItems.forEach((deletedItems, container) => {
@@ -782,7 +783,7 @@ class DragDropManager {
 
     const item = e.target.closest(".draggable-item");
     if (item.classList.contains("permanent-deleted")) {
-      this.restoreLastDeletedItem(item.parentElement);
+      this.restoreRecentlyDeletedItem(item.parentElement);
       return;
     }
 
@@ -790,7 +791,7 @@ class DragDropManager {
     this.dragStartPosition = { x: e.clientX, y: e.clientY };
 
     this.dragTimeout = setTimeout(() => {
-      this.startDrag(item, e.clientX, e.clientY);
+      this.initiateItemDrag(item, e.clientX, e.clientY);
     }, 150);
 
     e.preventDefault();
@@ -804,17 +805,17 @@ class DragDropManager {
     const item = e.target.closest(".draggable-item");
 
     if (item.classList.contains("permanent-deleted")) {
-      this.restoreLastDeletedItem(item.parentElement);
+      this.restoreRecentlyDeletedItem(item.parentElement);
       return;
     }
 
-    this.touchStartElement = item;
+    this.initialTouchElement = item;
     this.dragStartTime = Date.now();
     this.dragStartPosition = { x: touch.clientX, y: touch.clientY };
 
     // Set up drag timeout for touch devices
-    if (this.isTouchDevice) {
-      this.isPotentialDrag = true;
+    if (this.isTouchCapableDevice) {
+      this.isPotentialDragAction = true;
 
       // Clear any existing timeout
       if (this.touchDragTimeout) {
@@ -823,24 +824,28 @@ class DragDropManager {
 
       // Set new timeout for drag initiation (500ms hold)
       this.touchDragTimeout = setTimeout(() => {
-        if (this.isPotentialDrag && this.touchStartElement) {
-          this.startDrag(this.touchStartElement, touch.clientX, touch.clientY);
-          this.isPotentialDrag = false;
+        if (this.isPotentialDragAction && this.initialTouchElement) {
+          this.initiateItemDrag(
+            this.initialTouchElement,
+            touch.clientX,
+            touch.clientY
+          );
+          this.isPotentialDragAction = false;
         }
       }, 500);
     } else {
       // Non-touch devices use shorter delay
       this.dragTimeout = setTimeout(() => {
-        this.startDrag(item, touch.clientX, touch.clientY);
+        this.initiateItemDrag(item, touch.clientX, touch.clientY);
       }, 200);
     }
 
-    if (!this.isTouchDevice) {
+    if (!this.isTouchCapableDevice) {
       e.preventDefault();
     }
   }
 
-  startDrag(item, clientX, clientY) {
+  initiateItemDrag(item, clientX, clientY) {
     if (this.dragTimeout) {
       clearTimeout(this.dragTimeout);
       this.dragTimeout = null;
@@ -851,9 +856,9 @@ class DragDropManager {
       this.touchDragTimeout = null;
     }
 
-    this.draggedItem = item;
+    this.currentlyDraggedItem = item;
     this.container = item.parentElement;
-    this.isDragging = true;
+    this.isItemBeingDragged = true;
 
     this.floatingDeleteZone.classList.add("visible");
 
@@ -864,19 +869,19 @@ class DragDropManager {
     item.style.setProperty("--item-width", `${this.itemWidth}px`);
     item.style.setProperty("--item-height", `${this.itemHeight}px`);
 
-    this.dragOffset.x = clientX - rect.left;
-    this.dragOffset.y = clientY - rect.top;
+    this.dragStartOffset.x = clientX - rect.left;
+    this.dragStartOffset.y = clientY - rect.top;
 
     this.originalIndex = Array.from(this.container.children).indexOf(item);
     this.currentTargetIndex = this.originalIndex;
 
-    this.createPlaceholder();
+    this.createDragPlaceholder();
     item.classList.add("dragging");
     this.updateItemPosition(clientX, clientY);
 
     // Disable scroll on touch devices when dragging starts
-    if (this.isTouchDevice) {
-      this.disableScroll();
+    if (this.isTouchCapableDevice) {
+      this.preventPageScroll();
     }
 
     setTimeout(() => {
@@ -886,7 +891,7 @@ class DragDropManager {
     }, 100);
   }
 
-  createPlaceholder() {
+  createDragPlaceholder() {
     this.placeholder = document.createElement("div");
     this.placeholder.classList.add("draggable-item", "placeholder");
 
@@ -894,11 +899,11 @@ class DragDropManager {
     this.placeholder.style.height = `${this.itemHeight}px`;
     this.placeholder.style.opacity = "0";
 
-    this.container.insertBefore(this.placeholder, this.draggedItem);
+    this.container.insertBefore(this.placeholder, this.currentlyDraggedItem);
   }
 
   handleMouseMove(e) {
-    if (this.dragTimeout && !this.isDragging) {
+    if (this.dragTimeout && !this.isItemBeingDragged) {
       const moveDistance = Math.sqrt(
         Math.pow(e.clientX - this.dragStartPosition.x, 2) +
           Math.pow(e.clientY - this.dragStartPosition.y, 2)
@@ -911,7 +916,7 @@ class DragDropManager {
       }
     }
 
-    if (!this.isDragging) return;
+    if (!this.isItemBeingDragged) return;
 
     const deleteZoneRect = this.floatingDeleteZone.getBoundingClientRect();
     const isOverDeleteZone =
@@ -928,14 +933,14 @@ class DragDropManager {
       this.floatingDeleteZone.classList.remove("active");
     }
 
-    this.updateDrag(e.clientX, e.clientY);
+    this.updateDragPosition(e.clientX, e.clientY);
     e.preventDefault();
   }
 
   // Touch move with scroll prevention during drag
   handleTouchMove(e) {
     // If we're potentially starting a drag but haven't initiated yet
-    if (this.isPotentialDrag && !this.isDragging) {
+    if (this.isPotentialDragAction && !this.isItemBeingDragged) {
       const touch = e.touches[0];
       const moveDistance = Math.sqrt(
         Math.pow(touch.clientX - this.dragStartPosition.x, 2) +
@@ -944,7 +949,7 @@ class DragDropManager {
 
       // If user moved too much during the hold period, cancel potential drag
       if (moveDistance > 15) {
-        this.isPotentialDrag = false;
+        this.isPotentialDragAction = false;
         if (this.touchDragTimeout) {
           clearTimeout(this.touchDragTimeout);
           this.touchDragTimeout = null;
@@ -957,7 +962,7 @@ class DragDropManager {
       return;
     }
 
-    if (!this.isDragging) return;
+    if (!this.isItemBeingDragged) return;
 
     const touch = e.touches[0];
 
@@ -976,12 +981,12 @@ class DragDropManager {
       this.floatingDeleteZone.classList.remove("active");
     }
 
-    this.updateDrag(touch.clientX, touch.clientY);
+    this.updateDragPosition(touch.clientX, touch.clientY);
     e.preventDefault();
   }
 
-  updateDrag(clientX, clientY) {
-    if (!this.draggedItem || !this.isDragging) return;
+  updateDragPosition(clientX, clientY) {
+    if (!this.currentlyDraggedItem || !this.isItemBeingDragged) return;
 
     if (this.animationFrame) {
       cancelAnimationFrame(this.animationFrame);
@@ -989,112 +994,93 @@ class DragDropManager {
 
     this.animationFrame = requestAnimationFrame(() => {
       this.updateItemPosition(clientX, clientY);
-
-      const now = Date.now();
-      if (now - this.lastSnapTime > this.snapCooldown) {
-        this.handleSnapping();
-        this.lastSnapTime = now;
-      }
+      this.reorderItemsOnDrag();
     });
   }
 
   updateItemPosition(clientX, clientY) {
-    const x = clientX - this.dragOffset.x;
-    const y = clientY - this.dragOffset.y;
+    const x = clientX - this.dragStartOffset.x;
+    const y = clientY - this.dragStartOffset.y;
 
-    this.draggedItem.style.position = "fixed";
-    this.draggedItem.style.left = `${x}px`;
-    this.draggedItem.style.top = `${y}px`;
-    this.draggedItem.style.zIndex = "1000";
-    this.draggedItem.style.pointerEvents = "none";
-    this.draggedItem.style.width = `${this.itemWidth}px`;
-    this.draggedItem.style.height = `${this.itemHeight}px`;
+    this.currentlyDraggedItem.style.position = "fixed";
+    this.currentlyDraggedItem.style.left = `${x}px`;
+    this.currentlyDraggedItem.style.top = `${y}px`;
+    this.currentlyDraggedItem.style.zIndex = "1000";
+    this.currentlyDraggedItem.style.pointerEvents = "none";
+    this.currentlyDraggedItem.style.width = `${this.itemWidth}px`;
+    this.currentlyDraggedItem.style.height = `${this.itemHeight}px`;
   }
 
-  handleSnapping() {
-    if (!this.draggedItem || !this.placeholder) return;
+  reorderItemsOnDrag() {
+    if (!this.currentlyDraggedItem || !this.placeholder) return;
 
-    const draggedRect = this.draggedItem.getBoundingClientRect();
+    const draggedRect = this.currentlyDraggedItem.getBoundingClientRect();
     const items = Array.from(this.container.children).filter(
-      (child) => child !== this.draggedItem && child !== this.placeholder
+      (child) =>
+        child !== this.currentlyDraggedItem &&
+        child !== this.placeholder &&
+        !child.classList.contains("permanent-deleted")
     );
 
-    const draggedCenterY = draggedRect.top + draggedRect.height / 2;
+    // Find which item the dragged item is covering by 50% or more
+    let targetItem = null;
 
-    const targetPositions = [];
-
-    items.forEach((item, index) => {
+    for (const item of items) {
       const itemRect = item.getBoundingClientRect();
-      const itemCenterY = itemRect.top + itemRect.height / 2;
 
-      const isDeletedItem = item.classList.contains("permanent-deleted");
-      const snapDistance = isDeletedItem
-        ? this.snapThreshold * 2
-        : this.snapThreshold;
+      // Calculate overlap area
+      const overlapLeft = Math.max(draggedRect.left, itemRect.left);
+      const overlapRight = Math.min(draggedRect.right, itemRect.right);
+      const overlapTop = Math.max(draggedRect.top, itemRect.top);
+      const overlapBottom = Math.min(draggedRect.bottom, itemRect.bottom);
 
-      const distance = Math.abs(draggedCenterY - itemCenterY);
+      if (overlapLeft < overlapRight && overlapTop < overlapBottom) {
+        const overlapWidth = overlapRight - overlapLeft;
+        const overlapHeight = overlapBottom - overlapTop;
+        const overlapArea = overlapWidth * overlapHeight;
 
-      targetPositions.push({
-        item: item,
-        index: index,
-        centerY: itemCenterY,
-        distance: distance,
-        isDeleted: isDeletedItem,
-        snapDistance: snapDistance,
-      });
-    });
+        const itemArea = itemRect.width * itemRect.height;
+        const overlapPercentage = (overlapArea / itemArea) * 100;
 
-    if (items.length > 0) {
-      const firstItem = items[0];
-      const firstRect = firstItem.getBoundingClientRect();
-      targetPositions.push({
-        item: firstItem,
-        index: -1,
-        centerY: firstRect.top - this.itemHeight / 2,
-        distance: Math.abs(
-          draggedCenterY - (firstRect.top - this.itemHeight / 2)
-        ),
-        isDeleted: false,
-        snapDistance: this.snapThreshold,
-      });
-
-      const lastItem = items[items.length - 1];
-      const lastRect = lastItem.getBoundingClientRect();
-      targetPositions.push({
-        item: lastItem,
-        index: items.length,
-        centerY: lastRect.bottom + this.itemHeight / 2,
-        distance: Math.abs(
-          draggedCenterY - (lastRect.bottom + this.itemHeight / 2)
-        ),
-        isDeleted: false,
-        snapDistance: this.snapThreshold,
-      });
-    }
-
-    const validTargets = targetPositions.filter(
-      (target) => target.distance < target.snapDistance
-    );
-
-    this.highlightNearbyDeletedItems(draggedRect);
-
-    if (validTargets.length > 0) {
-      validTargets.sort((a, b) => a.distance - b.distance);
-      const bestTarget = validTargets[0];
-
-      if (bestTarget.index !== this.currentTargetIndex) {
-        this.currentTargetIndex = bestTarget.index;
-        this.moveToTargetPosition(bestTarget);
-      }
-    } else {
-      if (this.currentTargetIndex !== this.originalIndex) {
-        this.currentTargetIndex = this.originalIndex;
-        this.moveToOriginalPosition();
+        // If dragged item covers 50% or more of this item, swap positions
+        if (overlapPercentage >= 50) {
+          targetItem = item;
+          break;
+        }
       }
     }
+
+    if (targetItem) {
+      const draggedIndex = this.originalIndex;
+      const targetIndex = Array.from(this.container.children).indexOf(
+        targetItem
+      );
+
+      // Only swap if they're different positions
+      if (draggedIndex !== targetIndex) {
+        this.placeholder.remove();
+
+        // Move the target item to the dragged item's original position
+        this.container.insertBefore(
+          targetItem,
+          this.container.children[draggedIndex]
+        );
+
+        // Put placeholder back where the target item was
+        this.container.insertBefore(
+          this.placeholder,
+          this.container.children[targetIndex]
+        );
+
+        // Update original index since positions have changed
+        this.originalIndex = targetIndex;
+      }
+    }
+
+    this.highlightAdjacentDeletedItems(draggedRect);
   }
 
-  highlightNearbyDeletedItems(draggedRect) {
+  highlightAdjacentDeletedItems(draggedRect) {
     this.container.classList.remove("drag-near-deleted");
 
     const deletedItems = this.container.querySelectorAll(".permanent-deleted");
@@ -1131,74 +1117,28 @@ class DragDropManager {
     }
   }
 
-  moveToTargetPosition(target) {
-    const placeholderIndex = Array.from(this.container.children).indexOf(
-      this.placeholder
-    );
-    let targetIndex = target.index;
-
-    if (target.index === -1) {
-      targetIndex = 0;
-    } else if (target.index >= this.container.children.length - 1) {
-      targetIndex = this.container.children.length - 1;
-    } else {
-      const itemRect = target.item.getBoundingClientRect();
-      const draggedRect = this.draggedItem.getBoundingClientRect();
-      const draggedCenterY = draggedRect.top + draggedRect.height / 2;
-      const itemCenterY = itemRect.top + itemRect.height / 2;
-
-      targetIndex = Array.from(this.container.children).indexOf(target.item);
-      if (draggedCenterY > itemCenterY) {
-        targetIndex += 1;
-      }
-    }
-
-    if (
-      placeholderIndex !== targetIndex &&
-      targetIndex >= 0 &&
-      targetIndex < this.container.children.length
-    ) {
-      const targetElement = this.container.children[targetIndex];
-      if (targetElement !== this.placeholder) {
-        this.container.insertBefore(this.placeholder, targetElement);
-      }
-    }
-  }
-
-  moveToOriginalPosition() {
-    const placeholderIndex = Array.from(this.container.children).indexOf(
-      this.placeholder
-    );
-    const originalElement = this.container.children[this.originalIndex];
-
-    if (originalElement && placeholderIndex !== this.originalIndex) {
-      this.container.insertBefore(this.placeholder, originalElement);
-    }
-  }
-
   handleMouseUp(e) {
-    this.endDrag();
+    this.completeDragOperation();
   }
 
   // Touch end with cleanup
   handleTouchEnd(e) {
-    // If we were in potential drag state but didn't start dragging, clean up
-    if (this.isPotentialDrag && !this.isDragging) {
-      this.isPotentialDrag = false;
+    if (this.isPotentialDragAction && !this.isItemBeingDragged) {
+      this.isPotentialDragAction = false;
       if (this.touchDragTimeout) {
         clearTimeout(this.touchDragTimeout);
         this.touchDragTimeout = null;
       }
-      this.touchStartElement = null;
+      this.initialTouchElement = null;
       return;
     }
 
-    this.endDrag();
+    this.completeDragOperation();
   }
 
-  endDrag() {
-    if (this.isOverDeleteZone && this.draggedItem) {
-      this.deleteDraggedItem();
+  completeDragOperation() {
+    if (this.isOverDeleteZone && this.currentlyDraggedItem) {
+      this.removeDraggedItem();
     } else {
       if (this.dragTimeout) {
         clearTimeout(this.dragTimeout);
@@ -1210,38 +1150,38 @@ class DragDropManager {
         this.touchDragTimeout = null;
       }
 
-      if (!this.isDragging) return;
+      if (!this.isItemBeingDragged) return;
 
-      this.isDragging = false;
+      this.isItemBeingDragged = false;
 
       if (this.animationFrame) {
         cancelAnimationFrame(this.animationFrame);
       }
 
-      if (this.draggedItem && this.placeholder) {
-        this.snapToPosition();
+      if (this.currentlyDraggedItem && this.placeholder) {
+        this.snapItemToGrid();
       } else {
-        this.cleanup();
+        this.resetDragState();
       }
     }
 
     // Re-enable scroll on touch devices
-    if (this.isTouchDevice) {
-      this.enableScroll();
+    if (this.isTouchCapableDevice) {
+      this.restorePageScroll();
     }
 
     this.floatingDeleteZone.classList.remove("visible", "active");
     this.isOverDeleteZone = false;
-    this.isPotentialDrag = false;
-    this.touchStartElement = null;
+    this.isPotentialDragAction = false;
+    this.initialTouchElement = null;
   }
 
-  snapToPosition() {
-    if (!this.draggedItem || !this.placeholder) return;
+  snapItemToGrid() {
+    if (!this.currentlyDraggedItem || !this.placeholder) return;
 
-    this.container.insertBefore(this.draggedItem, this.placeholder);
-    this.cleanup();
-    this.saveOrder();
+    this.container.insertBefore(this.currentlyDraggedItem, this.placeholder);
+    this.resetDragState();
+    this.persistItemOrder();
 
     // Trigger scroll animations after snap to fix conflicts with transitions.js
     this.triggerScrollAnimations();
@@ -1266,7 +1206,7 @@ class DragDropManager {
     });
   }
 
-  cleanup() {
+  resetDragState() {
     if (this.container) {
       this.container.classList.remove("drag-near-deleted");
       const deletedItems =
@@ -1278,25 +1218,25 @@ class DragDropManager {
       });
     }
 
-    if (this.draggedItem) {
-      this.draggedItem.classList.remove("dragging");
-      this.draggedItem.style.position = "";
-      this.draggedItem.style.left = "";
-      this.draggedItem.style.top = "";
-      this.draggedItem.style.zIndex = "";
-      this.draggedItem.style.pointerEvents = "";
-      this.draggedItem.style.transform = "";
-      this.draggedItem.style.width = "";
-      this.draggedItem.style.height = "";
-      this.draggedItem.style.removeProperty("--item-width");
-      this.draggedItem.style.removeProperty("--item-height");
+    if (this.currentlyDraggedItem) {
+      this.currentlyDraggedItem.classList.remove("dragging");
+      this.currentlyDraggedItem.style.position = "";
+      this.currentlyDraggedItem.style.left = "";
+      this.currentlyDraggedItem.style.top = "";
+      this.currentlyDraggedItem.style.zIndex = "";
+      this.currentlyDraggedItem.style.pointerEvents = "";
+      this.currentlyDraggedItem.style.transform = "";
+      this.currentlyDraggedItem.style.width = "";
+      this.currentlyDraggedItem.style.height = "";
+      this.currentlyDraggedItem.style.removeProperty("--item-width");
+      this.currentlyDraggedItem.style.removeProperty("--item-height");
     }
 
     if (this.placeholder && this.placeholder.parentElement) {
       this.placeholder.parentElement.removeChild(this.placeholder);
     }
 
-    this.draggedItem = null;
+    this.currentlyDraggedItem = null;
     this.placeholder = null;
     this.container = null;
     this.animationFrame = null;
@@ -1307,7 +1247,7 @@ class DragDropManager {
     this.lastSnapTime = 0;
   }
 
-  saveOrder() {
+  persistItemOrder() {
     if (!this.container) return;
 
     const items = Array.from(this.container.children);
@@ -1328,15 +1268,13 @@ class DragDropManager {
       this.floatingDeleteZone.remove();
     }
 
-    // Ensure scroll is re-enabled
-    this.enableScroll();
+    this.restorePageScroll(); // Ensure scroll is re-enabled
   }
 }
 
-// Initialize drag and drop when DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
   setTimeout(() => {
-    window.dragDropManager = new DragDropManager();
+    window.dragDropManager = new ItemDragManager();
     window.dragDropManager.initGlobalRestore();
   }, 100);
 });
