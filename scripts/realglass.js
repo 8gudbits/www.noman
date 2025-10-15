@@ -4,53 +4,105 @@
 //  Cracking effect  //
 // ################# //
 (function ($) {
-  function renderCrackEffectRefract(cvs, img, p1, p2, line) {
-    var ctx = cvs.getContext("2d"),
-      tx = line.tx,
-      ty = line.ty,
-      cp = line.cpt,
-      ns = 3,
-      td = 6,
-      x1 = line.bbx1,
-      y1 = line.bby1,
-      w = line.bbwidth + ns * 2,
-      h = line.bbheight + ns * 2;
+  function drawCrackRefraction(
+    canvas,
+    sourceImage,
+    startPoint,
+    endPoint,
+    pathSegment
+  ) {
+    var canvasContext = canvas.getContext("2d"),
+      tangentX = pathSegment.tx,
+      tangentY = pathSegment.ty,
+      curveControlPoint = pathSegment.cpt,
+      noiseScale = 3,
+      textureDisplacement = 6,
+      boundingBoxX = pathSegment.bbx1,
+      boundingBoxY = pathSegment.bby1,
+      boundingBoxWidth = pathSegment.bbwidth + noiseScale * 2,
+      boundingBoxHeight = pathSegment.bbheight + noiseScale * 2;
 
     if (80 === 0) return;
 
-    ctx.globalAlpha = 80 || 1;
-    ctx.save();
+    canvasContext.globalAlpha = 80 || 1;
+    canvasContext.save();
 
-    ctx.beginPath();
-    ctx.moveTo(p1.x + ns * tx, p1.y + ns * ty);
-    ctx.quadraticCurveTo(cp.x, cp.y, p2.x + ns * tx, p2.y + ns * ty);
-    ctx.lineTo(p2.x - ns * tx, p2.y - ns * ty);
-    ctx.quadraticCurveTo(cp.x, cp.y, p1.x - ns * tx, p1.y - ns * ty);
-    ctx.closePath();
-    ctx.clip();
+    canvasContext.beginPath();
+    canvasContext.moveTo(
+      startPoint.x + noiseScale * tangentX,
+      startPoint.y + noiseScale * tangentY
+    );
+    canvasContext.quadraticCurveTo(
+      curveControlPoint.x,
+      curveControlPoint.y,
+      endPoint.x + noiseScale * tangentX,
+      endPoint.y + noiseScale * tangentY
+    );
+    canvasContext.lineTo(
+      endPoint.x - noiseScale * tangentX,
+      endPoint.y - noiseScale * tangentY
+    );
+    canvasContext.quadraticCurveTo(
+      curveControlPoint.x,
+      curveControlPoint.y,
+      startPoint.x - noiseScale * tangentX,
+      startPoint.y - noiseScale * tangentY
+    );
+    canvasContext.closePath();
+    canvasContext.clip();
 
     try {
-      if (x1 + td * tx < 0) x1 = -td * tx;
-      if (y1 + td * ty < 0) y1 = -td * ty;
-      if (w + x1 + td * tx > ctx.canvas.width)
-        w = ctx.canvas.width - x1 + td * tx;
-      if (h + y1 + td * ty > ctx.canvas.height)
-        h = ctx.canvas.height - y1 + td * ty;
+      if (boundingBoxX + textureDisplacement * tangentX < 0)
+        boundingBoxX = -textureDisplacement * tangentX;
+      if (boundingBoxY + textureDisplacement * tangentY < 0)
+        boundingBoxY = -textureDisplacement * tangentY;
+      if (
+        boundingBoxWidth + boundingBoxX + textureDisplacement * tangentX >
+        canvasContext.canvas.width
+      )
+        boundingBoxWidth =
+          canvasContext.canvas.width -
+          boundingBoxX +
+          textureDisplacement * tangentX;
+      if (
+        boundingBoxHeight + boundingBoxY + textureDisplacement * tangentY >
+        canvasContext.canvas.height
+      )
+        boundingBoxHeight =
+          canvasContext.canvas.height -
+          boundingBoxY +
+          textureDisplacement * tangentY;
 
-      ctx.drawImage(img, x1 + td * tx, y1 + td * ty, w, h, x1, y1, w, h);
+      canvasContext.drawImage(
+        sourceImage,
+        boundingBoxX + textureDisplacement * tangentX,
+        boundingBoxY + textureDisplacement * tangentY,
+        boundingBoxWidth,
+        boundingBoxHeight,
+        boundingBoxX,
+        boundingBoxY,
+        boundingBoxWidth,
+        boundingBoxHeight
+      );
     } catch (e) {}
 
-    ctx.restore();
+    canvasContext.restore();
   }
 
-  function renderCrackEffectReflect(cvs, img, p1, p2, line) {
-    var ctx = cvs.getContext("2d"),
-      tx = line.tx,
-      ty = line.ty,
-      cp = line.cpt,
-      dd = line.dl / 3,
-      grd,
-      clr = {
+  function drawCrackReflection(
+    canvas,
+    sourceImage,
+    startPoint,
+    endPoint,
+    pathSegment
+  ) {
+    var canvasContext = canvas.getContext("2d"),
+      tangentX = pathSegment.tx,
+      tangentY = pathSegment.ty,
+      curveControlPoint = pathSegment.cpt,
+      detailDistance = pathSegment.dl / 3,
+      gradient,
+      colorGenerator = {
         alpha: function (a) {
           return {
             toRgbaString: function () {
@@ -61,52 +113,70 @@
       };
 
     if (0.3 === 0) return;
-    ctx.globalAlpha = 0.3 || 1;
+    canvasContext.globalAlpha = 0.3 || 1;
 
     try {
-      grd = ctx.createLinearGradient(
-        p1.x + dd * tx,
-        p1.y + dd * ty,
-        p1.x - dd * tx,
-        p1.y - dd * ty
+      gradient = canvasContext.createLinearGradient(
+        startPoint.x + detailDistance * tangentX,
+        startPoint.y + detailDistance * tangentY,
+        startPoint.x - detailDistance * tangentX,
+        startPoint.y - detailDistance * tangentY
       );
     } catch (e) {}
 
-    grd.addColorStop(0, clr.alpha(0).toRgbaString());
-    grd.addColorStop(0.5, clr.alpha(0.5).toRgbaString());
-    grd.addColorStop(1, clr.alpha(0).toRgbaString());
-    ctx.fillStyle = grd;
+    gradient.addColorStop(0, colorGenerator.alpha(0).toRgbaString());
+    gradient.addColorStop(0.5, colorGenerator.alpha(0.5).toRgbaString());
+    gradient.addColorStop(1, colorGenerator.alpha(0).toRgbaString());
+    canvasContext.fillStyle = gradient;
 
-    ctx.beginPath();
-    ctx.moveTo(p1.x + dd * tx, p1.y + dd * ty);
-    ctx.lineTo(p2.x + dd * tx, p2.y + dd * ty);
-    ctx.lineTo(p2.x - dd * tx, p2.y - dd * ty);
-    ctx.lineTo(p1.x - dd * tx, p1.y - dd * ty);
-    ctx.closePath();
-    ctx.fill();
+    canvasContext.beginPath();
+    canvasContext.moveTo(
+      startPoint.x + detailDistance * tangentX,
+      startPoint.y + detailDistance * tangentY
+    );
+    canvasContext.lineTo(
+      endPoint.x + detailDistance * tangentX,
+      endPoint.y + detailDistance * tangentY
+    );
+    canvasContext.lineTo(
+      endPoint.x - detailDistance * tangentX,
+      endPoint.y - detailDistance * tangentY
+    );
+    canvasContext.lineTo(
+      startPoint.x - detailDistance * tangentX,
+      startPoint.y - detailDistance * tangentY
+    );
+    canvasContext.closePath();
+    canvasContext.fill();
   }
 
-  function renderCrackEffectFractures(cvs, img, p1, p2, line) {
-    var ctx = cvs.getContext("2d"),
-      tx = line.tx,
-      ty = line.ty,
-      sx = line.sx,
-      sy = line.sy,
-      sz = 20,
-      dl = line.dl,
-      mp = dl / 2,
-      mpp = line.mpp,
-      cma = line.cma,
-      mpl1 = line.mpl1,
-      mpl2 = line.mpl2,
-      s,
-      p,
-      c,
-      w,
-      h1,
-      h2,
-      t,
-      clr = {
+  function drawCrackFractures(
+    canvas,
+    sourceImage,
+    startPoint,
+    endPoint,
+    pathSegment
+  ) {
+    var canvasContext = canvas.getContext("2d"),
+      tangentX = pathSegment.tx,
+      tangentY = pathSegment.ty,
+      slopeX = pathSegment.sx,
+      slopeY = pathSegment.sy,
+      fractureSize = 20,
+      pathLength = pathSegment.dl,
+      midPoint = pathLength / 2,
+      midPointPercentage = pathSegment.mpp,
+      curveMagnitude = pathSegment.cma,
+      firstSegmentLength = pathSegment.mpl1,
+      secondSegmentLength = pathSegment.mpl2,
+      segmentIndex,
+      position,
+      curveOffset,
+      fractureWidth,
+      fractureHeight1,
+      fractureHeight2,
+      rotation,
+      colorGenerator = {
         alpha: function (a) {
           return {
             toRgbaString: function () {
@@ -117,53 +187,102 @@
       };
 
     if (0.4 === 0) return;
-    ctx.globalAlpha = 0.4 || 1;
-    ctx.lineWidth = 1;
+    canvasContext.globalAlpha = 0.4 || 1;
+    canvasContext.lineWidth = 1;
 
-    for (s = 0; s < dl; s++) {
-      if (s < mpp * dl) c = cma * (1 - Math.pow((mpl1 - s) / mpl1, 2));
-      else c = cma * (1 - Math.pow((mpl2 - (dl - s)) / mpl2, 2));
+    for (segmentIndex = 0; segmentIndex < pathLength; segmentIndex++) {
+      if (segmentIndex < midPointPercentage * pathLength)
+        curveOffset =
+          curveMagnitude *
+          (1 -
+            Math.pow(
+              (firstSegmentLength - segmentIndex) / firstSegmentLength,
+              2
+            ));
+      else
+        curveOffset =
+          curveMagnitude *
+          (1 -
+            Math.pow(
+              (secondSegmentLength - (pathLength - segmentIndex)) /
+                secondSegmentLength,
+              2
+            ));
 
-      c /= 2;
-      p = Math.pow((s > mp ? dl - s : s) / mp, 2);
+      curveOffset /= 2;
+      position = Math.pow(
+        (segmentIndex > midPoint ? pathLength - segmentIndex : segmentIndex) /
+          midPoint,
+        2
+      );
 
-      w = Math.random() * 1 + 1;
-      h1 = sz - Math.random() * p * sz + 1;
-      h2 = sz - Math.random() * p * sz + 1;
-      t = Math.random() * 14 - 7;
+      fractureWidth = Math.random() * 1 + 1;
+      fractureHeight1 =
+        fractureSize - Math.random() * position * fractureSize + 1;
+      fractureHeight2 =
+        fractureSize - Math.random() * position * fractureSize + 1;
+      rotation = Math.random() * 14 - 7;
 
-      if (Math.random() > p - sz / mp) {
-        ctx.fillStyle = clr
+      if (Math.random() > position - fractureSize / midPoint) {
+        canvasContext.fillStyle = colorGenerator
           .alpha(Math.round(Math.random() * 8 + 4) / 12)
           .toRgbaString();
-        ctx.beginPath();
-        ctx.moveTo(p1.x + s * sx + c * tx, p1.y + s * sy + c * ty);
-        ctx.lineTo(
-          p1.x + (t + s + w / 2) * sx + h1 * tx + c * tx,
-          p1.y + (-t + s + w / 2) * sy + h1 * ty + c * ty
+        canvasContext.beginPath();
+        canvasContext.moveTo(
+          startPoint.x + segmentIndex * slopeX + curveOffset * tangentX,
+          startPoint.y + segmentIndex * slopeY + curveOffset * tangentY
         );
-        ctx.lineTo(p1.x + (s + w) * sx + c * tx, p1.y + (s + w) * sy + c * ty);
-        ctx.lineTo(
-          p1.x + (-t + s + w / 2) * sx - h2 * tx + c * tx,
-          p1.y + (t + s + w / 2) * sy - h2 * ty + c * ty
+        canvasContext.lineTo(
+          startPoint.x +
+            (rotation + segmentIndex + fractureWidth / 2) * slopeX +
+            fractureHeight1 * tangentX +
+            curveOffset * tangentX,
+          startPoint.y +
+            (-rotation + segmentIndex + fractureWidth / 2) * slopeY +
+            fractureHeight1 * tangentY +
+            curveOffset * tangentY
         );
-        ctx.closePath();
-        ctx.fill();
+        canvasContext.lineTo(
+          startPoint.x +
+            (segmentIndex + fractureWidth) * slopeX +
+            curveOffset * tangentX,
+          startPoint.y +
+            (segmentIndex + fractureWidth) * slopeY +
+            curveOffset * tangentY
+        );
+        canvasContext.lineTo(
+          startPoint.x +
+            (-rotation + segmentIndex + fractureWidth / 2) * slopeX -
+            fractureHeight2 * tangentX +
+            curveOffset * tangentX,
+          startPoint.y +
+            (rotation + segmentIndex + fractureWidth / 2) * slopeY -
+            fractureHeight2 * tangentY +
+            curveOffset * tangentY
+        );
+        canvasContext.closePath();
+        canvasContext.fill();
       }
-      s += mp * (p / 2 + 0.5);
+      segmentIndex += midPoint * (position / 2 + 0.5);
     }
   }
 
-  function renderCrackEffectMainLine(cvs, img, p1, p2, line) {
-    var ctx = cvs.getContext("2d"),
-      tx = line.tx,
-      ty = line.ty,
-      cp = line.cpt,
-      ns = 0.03,
-      st = 0.14,
-      hl = 0.2,
-      tt = Math.random() * (ns * 2) - (ns * 2) / 2,
-      clr = {
+  function drawCrackMainLine(
+    canvas,
+    sourceImage,
+    startPoint,
+    endPoint,
+    pathSegment
+  ) {
+    var canvasContext = canvas.getContext("2d"),
+      tangentX = pathSegment.tx,
+      tangentY = pathSegment.ty,
+      curveControlPoint = pathSegment.cpt,
+      noiseScale = 0.03,
+      strokeThickness = 0.14,
+      highlightLength = 0.2,
+      textureOffset = Math.random() * (noiseScale * 2) - (noiseScale * 2) / 2,
+      colorGenerator = {
         lightness: function (l) {
           return this;
         },
@@ -175,51 +294,62 @@
           };
         },
       },
-      nn = 0.5;
+      noiseIntensity = 0.5;
 
     if (65 === 0) return;
-    ctx.globalAlpha = 65 || 1;
-    ctx.lineWidth = 1;
+    canvasContext.globalAlpha = 65 || 1;
+    canvasContext.lineWidth = 1;
 
-    while (st > 0) {
-      ctx.strokeStyle = clr
+    while (strokeThickness > 0) {
+      canvasContext.strokeStyle = colorGenerator
         .alpha(Math.round(Math.random() * 8 + 4) / 12)
         .toRgbaString();
-      ctx.beginPath();
-      ctx.moveTo(p1.x + (st + tt) * tx, p1.y + (st - tt) * ty);
-      ctx.quadraticCurveTo(
-        cp.x,
-        cp.y,
-        p2.x + (st - tt) * tx,
-        p2.y + (st + tt) * ty
+      canvasContext.beginPath();
+      canvasContext.moveTo(
+        startPoint.x + (strokeThickness + textureOffset) * tangentX,
+        startPoint.y + (strokeThickness - textureOffset) * tangentY
       );
-      ctx.stroke();
-      st--;
+      canvasContext.quadraticCurveTo(
+        curveControlPoint.x,
+        curveControlPoint.y,
+        endPoint.x + (strokeThickness - textureOffset) * tangentX,
+        endPoint.y + (strokeThickness + textureOffset) * tangentY
+      );
+      canvasContext.stroke();
+      strokeThickness--;
     }
   }
 
-  function renderCrackEffectNoise(cvs, img, p1, p2, line) {
-    var ctx = cvs.getContext("2d"),
-      tx = line.tx,
-      ty = line.ty,
-      sx = line.sx,
-      sy = line.sy,
-      freq = 0.4,
-      dl = line.dl,
-      mp = dl / 2,
-      mpp = line.mpp,
-      cma = line.cma,
-      mpl1 = line.mpl1,
-      mpl2 = line.mpl2,
-      dd = dl / 3,
-      step = Math.ceil(dd * (1 - (freq + 0.5) / 1.5) + 1),
-      c,
-      t,
-      s,
-      pos,
-      cnt,
-      m,
-      clr = {
+  function drawCrackNoise(
+    canvas,
+    sourceImage,
+    startPoint,
+    endPoint,
+    pathSegment
+  ) {
+    var canvasContext = canvas.getContext("2d"),
+      tangentX = pathSegment.tx,
+      tangentY = pathSegment.ty,
+      slopeX = pathSegment.sx,
+      slopeY = pathSegment.sy,
+      noiseFrequency = 0.4,
+      pathLength = pathSegment.dl,
+      midPoint = pathLength / 2,
+      midPointPercentage = pathSegment.mpp,
+      curveMagnitude = pathSegment.cma,
+      firstSegmentLength = pathSegment.mpl1,
+      secondSegmentLength = pathSegment.mpl2,
+      detailDistance = pathLength / 3,
+      stepSize = Math.ceil(
+        detailDistance * (1 - (noiseFrequency + 0.5) / 1.5) + 1
+      ),
+      curveOffset,
+      tangentOffset,
+      segmentIndex,
+      position,
+      count,
+      mirror,
+      colorGenerator = {
         alpha: function (a) {
           return {
             toRgbaString: function () {
@@ -230,282 +360,354 @@
       };
 
     if (1 === 0) return;
-    ctx.globalAlpha = 1 || 1;
-    ctx.lineWidth = 1;
+    canvasContext.globalAlpha = 1 || 1;
+    canvasContext.lineWidth = 1;
 
-    for (s = 0; s < dl; s++) {
-      if (s < mpp * dl) c = cma * (1 - Math.pow((mpl1 - s) / mpl1, 2));
-      else c = cma * (1 - Math.pow((mpl2 - (dl - s)) / mpl2, 2));
+    for (segmentIndex = 0; segmentIndex < pathLength; segmentIndex++) {
+      if (segmentIndex < midPointPercentage * pathLength)
+        curveOffset =
+          curveMagnitude *
+          (1 -
+            Math.pow(
+              (firstSegmentLength - segmentIndex) / firstSegmentLength,
+              2
+            ));
+      else
+        curveOffset =
+          curveMagnitude *
+          (1 -
+            Math.pow(
+              (secondSegmentLength - (pathLength - segmentIndex)) /
+                secondSegmentLength,
+              2
+            ));
 
-      c /= 2;
+      curveOffset /= 2;
 
-      for (t = -dd; t < dd; t++) {
-        if (Math.random() > Math.abs(t) / dd) {
-          cnt = Math.floor(Math.random() * 3 + 0.5);
-          m = Math.random() * 1.4 - 0.7;
+      for (
+        tangentOffset = -detailDistance;
+        tangentOffset < detailDistance;
+        tangentOffset++
+      ) {
+        if (Math.random() > Math.abs(tangentOffset) / detailDistance) {
+          count = Math.floor(Math.random() * 3 + 0.5);
+          mirror = Math.random() * 1.4 - 0.7;
 
-          while (cnt >= 0) {
-            ctx.strokeStyle = clr
+          while (count >= 0) {
+            canvasContext.strokeStyle = colorGenerator
               .alpha(Math.round(Math.random() * 10 + 2) / 30)
               .toRgbaString();
-            pos = Math.floor(Math.random() * 4 + 0.5);
-            ctx.beginPath();
-            ctx.moveTo(
-              p1.x + (s - pos) * sx + (m + t) * tx + c * tx,
-              p1.y + (s - pos) * sy + (-m + t) * ty + c * ty
+            position = Math.floor(Math.random() * 4 + 0.5);
+            canvasContext.beginPath();
+            canvasContext.moveTo(
+              startPoint.x +
+                (segmentIndex - position) * slopeX +
+                (mirror + tangentOffset) * tangentX +
+                curveOffset * tangentX,
+              startPoint.y +
+                (segmentIndex - position) * slopeY +
+                (-mirror + tangentOffset) * tangentY +
+                curveOffset * tangentY
             );
-            ctx.lineTo(
-              p1.x + (s + pos) * sx + (-m + t) * tx + c * tx,
-              p1.y + (s + pos) * sy + (m + t) * ty + c * ty
+            canvasContext.lineTo(
+              startPoint.x +
+                (segmentIndex + position) * slopeX +
+                (-mirror + tangentOffset) * tangentX +
+                curveOffset * tangentX,
+              startPoint.y +
+                (segmentIndex + position) * slopeY +
+                (mirror + tangentOffset) * tangentY +
+                curveOffset * tangentY
             );
-            ctx.stroke();
-            cnt--;
-            pos++;
+            canvasContext.stroke();
+            count--;
+            position++;
           }
         }
-        t += Math.random() * step * 2;
+        tangentOffset += Math.random() * stepSize * 2;
       }
-      s += Math.random() * step * 4;
+      segmentIndex += Math.random() * stepSize * 4;
     }
   }
 
-  function renderCrackEffectAll($canvas, paths) {
+  function renderAllCrackEffects($canvasElements, crackSegments) {
     var i,
-      line,
-      len = paths.length;
-    var dummyImg = new Image();
+      pathSegment,
+      len = crackSegments.length;
+    var placeholderImage = new Image();
 
     for (i = 0; i < len; i++) {
-      line = paths[i];
-      renderCrackEffectRefract(
-        $canvas[0],
-        dummyImg,
-        line.p1,
-        line.p2,
-        line.desc
+      pathSegment = crackSegments[i];
+      drawCrackRefraction(
+        $canvasElements[0],
+        placeholderImage,
+        pathSegment.p1,
+        pathSegment.p2,
+        pathSegment.desc
       );
-      renderCrackEffectReflect(
-        $canvas[1],
-        dummyImg,
-        line.p1,
-        line.p2,
-        line.desc
+      drawCrackReflection(
+        $canvasElements[1],
+        placeholderImage,
+        pathSegment.p1,
+        pathSegment.p2,
+        pathSegment.desc
       );
-      renderCrackEffectFractures(
-        $canvas[2],
-        dummyImg,
-        line.p1,
-        line.p2,
-        line.desc
+      drawCrackFractures(
+        $canvasElements[2],
+        placeholderImage,
+        pathSegment.p1,
+        pathSegment.p2,
+        pathSegment.desc
       );
-      renderCrackEffectMainLine(
-        $canvas[3],
-        dummyImg,
-        line.p1,
-        line.p2,
-        line.desc
+      drawCrackMainLine(
+        $canvasElements[3],
+        placeholderImage,
+        pathSegment.p1,
+        pathSegment.p2,
+        pathSegment.desc
       );
-      renderCrackEffectNoise($canvas[4], dummyImg, line.p1, line.p2, line.desc);
+      drawCrackNoise(
+        $canvasElements[4],
+        placeholderImage,
+        pathSegment.p1,
+        pathSegment.p2,
+        pathSegment.desc
+      );
     }
   }
 
-  var _RAD = Math.PI / 180;
+  var DEGREE_TO_RADIAN = Math.PI / 180;
 
-  function findPointOnCircle(c, r, a) {
+  function calculateCirclePoint(center, radius, angle) {
     return {
-      x: c.x + r * Math.cos(a * _RAD) - r * Math.sin(a * _RAD),
-      y: c.y + r * Math.sin(a * _RAD) + r * Math.cos(a * _RAD),
+      x:
+        center.x +
+        radius * Math.cos(angle * DEGREE_TO_RADIAN) -
+        radius * Math.sin(angle * DEGREE_TO_RADIAN),
+      y:
+        center.y +
+        radius * Math.sin(angle * DEGREE_TO_RADIAN) +
+        radius * Math.cos(angle * DEGREE_TO_RADIAN),
     };
   }
 
-  function describeLinePath(p1, p2, cv) {
-    var o = {},
-      cv = 3.5 * cv;
-    o.dx = p2.x - p1.x;
-    o.dy = p2.y - p1.y;
-    o.dl = Math.sqrt(o.dx * o.dx + o.dy * o.dy);
-    o.sx = o.dx / o.dl;
-    o.sy = o.dy / o.dl;
-    o.tx = o.dy / o.dl;
-    o.ty = -o.dx / o.dl;
-    o.mpp = Math.random() * 0.5 + 0.3;
-    o.mpl1 = o.dl * o.mpp;
-    o.mpl2 = o.dl - o.mpl1;
-    var ll = Math.log(o.dl * Math.E);
-    o.cma = Math.random() * ll * cv - (ll * cv) / 2;
-    o.cpt = {
-      x: p1.x + o.sx * o.mpl1 + o.tx * o.cma,
-      y: p1.y + o.sy * o.mpl1 + o.ty * o.cma,
+  function calculateLinePathData(firstPoint, secondPoint, curveIntensity) {
+    var data = {},
+      curveIntensity = 3.5 * curveIntensity;
+    data.dx = secondPoint.x - firstPoint.x;
+    data.dy = secondPoint.y - firstPoint.y;
+    data.dl = Math.sqrt(data.dx * data.dx + data.dy * data.dy);
+    data.sx = data.dx / data.dl;
+    data.sy = data.dy / data.dl;
+    data.tx = data.dy / data.dl;
+    data.ty = -data.dx / data.dl;
+    data.mpp = Math.random() * 0.5 + 0.3;
+    data.mpl1 = data.dl * data.mpp;
+    data.mpl2 = data.dl - data.mpl1;
+    var logLength = Math.log(data.dl * Math.E);
+    data.cma =
+      Math.random() * logLength * curveIntensity -
+      (logLength * curveIntensity) / 2;
+    data.cpt = {
+      x: firstPoint.x + data.sx * data.mpl1 + data.tx * data.cma,
+      y: firstPoint.y + data.sy * data.mpl1 + data.ty * data.cma,
     };
-    o.bbx1 = Math.min(p1.x, p2.x, o.cpt.x);
-    o.bby1 = Math.min(p1.y, p2.y, o.cpt.y);
-    o.bbx2 = Math.max(p1.x, p2.x, o.cpt.x);
-    o.bby2 = Math.max(p1.y, p2.y, o.cpt.y);
-    o.bbwidth = o.bbx2 - o.bbx1;
-    o.bbheight = o.bby2 - o.bby1;
-    return o;
+    data.bbx1 = Math.min(firstPoint.x, secondPoint.x, data.cpt.x);
+    data.bby1 = Math.min(firstPoint.y, secondPoint.y, data.cpt.y);
+    data.bbx2 = Math.max(firstPoint.x, secondPoint.x, data.cpt.x);
+    data.bby2 = Math.max(firstPoint.y, secondPoint.y, data.cpt.y);
+    data.bbwidth = data.bbx2 - data.bbx1;
+    data.bbheight = data.bby2 - data.bby1;
+    return data;
   }
 
-  function findCrackEffectPaths(options) {
-    var imx = 0,
-      imy = 0,
-      imw = options.width,
-      imh = options.height,
-      main = [[]],
-      lines = [],
-      level = 1,
-      maxl = 0,
-      r = 15,
-      c = options.center,
-      pt1,
-      pt2,
-      ang,
-      num,
-      num2;
+  function generateCrackPathSegments(crackConfig) {
+    var imageMinX = 0,
+      imageMinY = 0,
+      imageWidth = crackConfig.width,
+      imageHeight = crackConfig.height,
+      crackLayers = [[]],
+      crackLines = [],
+      currentLayer = 1,
+      maxLayer = 0,
+      radius = 15,
+      center = crackConfig.center,
+      firstPoint,
+      secondPoint,
+      angle,
+      segmentCount,
+      currentAngle;
 
-    num = 20;
-    ang = 360 / (num + 1);
+    segmentCount = 20;
+    angle = 360 / (segmentCount + 1);
 
-    while (main[0].length < num) {
-      num2 = ang * main[0].length + 10;
-      pt2 = findPointOnCircle(c, 5, num2);
-      main[0].push({ angle: num2, point: pt2 });
+    while (crackLayers[0].length < segmentCount) {
+      currentAngle = angle * crackLayers[0].length + 10;
+      secondPoint = calculateCirclePoint(center, 5, currentAngle);
+      crackLayers[0].push({ angle: currentAngle, point: secondPoint });
     }
 
-    while (r < 300) {
-      main[level] = [];
-      for (num2 = 0; num2 < num; num2++) {
-        pt1 = main[level - 1][num2];
-        main[level][num2] = null;
+    while (radius < 300) {
+      crackLayers[currentLayer] = [];
+      for (currentAngle = 0; currentAngle < segmentCount; currentAngle++) {
+        firstPoint = crackLayers[currentLayer - 1][currentAngle];
+        crackLayers[currentLayer][currentAngle] = null;
 
-        if (pt1) {
+        if (firstPoint) {
           if (
-            pt1.point.x > imx &&
-            pt1.point.x < imw &&
-            pt1.point.y > imy &&
-            pt1.point.y < imh
+            firstPoint.point.x > imageMinX &&
+            firstPoint.point.x < imageWidth &&
+            firstPoint.point.y > imageMinY &&
+            firstPoint.point.y < imageHeight
           ) {
-            ang = pt1.angle + (Math.random() * 7) / num - 7 / 2 / num;
-            if (ang > 350) ang = 350;
-            pt1 = pt1.point;
-            pt2 = findPointOnCircle(
-              c,
-              r + (Math.random() * r) / level - r / (level * 2),
-              ang
+            angle =
+              firstPoint.angle +
+              (Math.random() * 7) / segmentCount -
+              7 / 2 / segmentCount;
+            if (angle > 350) angle = 350;
+            firstPoint = firstPoint.point;
+            secondPoint = calculateCirclePoint(
+              center,
+              radius +
+                (Math.random() * radius) / currentLayer -
+                radius / (currentLayer * 2),
+              angle
             );
-            main[level][num2] = { angle: ang, point: { x: pt2.x, y: pt2.y } };
-          } else if (maxl == 0) {
-            maxl = level;
+            crackLayers[currentLayer][currentAngle] = {
+              angle: angle,
+              point: { x: secondPoint.x, y: secondPoint.y },
+            };
+          } else if (maxLayer == 0) {
+            maxLayer = currentLayer;
           }
         }
       }
-      level++;
-      r *= Math.random() * 1.3 + (1.3 - 50 / 100);
+      currentLayer++;
+      radius *= Math.random() * 1.3 + (1.3 - 50 / 100);
     }
 
-    if (maxl == 0) maxl = level;
-    var l = 1,
-      g = 0;
+    if (maxLayer == 0) maxLayer = currentLayer;
+    var layerIndex = 1,
+      segmentIndex = 0;
 
-    for (; l < level; l++) {
-      for (g = 0; g < num; g++) {
-        pt1 = main[l - 1][g];
-        pt2 = main[l][g];
+    for (; layerIndex < currentLayer; layerIndex++) {
+      for (segmentIndex = 0; segmentIndex < segmentCount; segmentIndex++) {
+        firstPoint = crackLayers[layerIndex - 1][segmentIndex];
+        secondPoint = crackLayers[layerIndex][segmentIndex];
 
-        if (pt1 && pt2) {
-          lines.push({
-            p1: { x: pt1.point.x, y: pt1.point.y },
-            p2: { x: pt2.point.x, y: pt2.point.y },
-            desc: describeLinePath(pt1.point, pt2.point, 21 / 100),
-            level: l,
+        if (firstPoint && secondPoint) {
+          crackLines.push({
+            p1: { x: firstPoint.point.x, y: firstPoint.point.y },
+            p2: { x: secondPoint.point.x, y: secondPoint.point.y },
+            desc: calculateLinePathData(
+              firstPoint.point,
+              secondPoint.point,
+              21 / 100
+            ),
+            level: layerIndex,
           });
 
           if (Math.random() < 60 / 100) {
-            pt1 = main[l][(g + 1) % num];
-            if (pt1) {
-              lines.push({
-                p1: { x: pt2.point.x, y: pt2.point.y },
-                p2: { x: pt1.point.x, y: pt1.point.y },
-                desc: describeLinePath(pt2.point, pt1.point, 21 / 100),
-                level: l,
+            firstPoint =
+              crackLayers[layerIndex][(segmentIndex + 1) % segmentCount];
+            if (firstPoint) {
+              crackLines.push({
+                p1: { x: secondPoint.point.x, y: secondPoint.point.y },
+                p2: { x: firstPoint.point.x, y: firstPoint.point.y },
+                desc: calculateLinePathData(
+                  secondPoint.point,
+                  firstPoint.point,
+                  21 / 100
+                ),
+                level: layerIndex,
               });
             }
           }
 
-          if (l < level - 1 && Math.random() < 30 / 100) {
-            pt1 = main[l + 1][(g + 1) % num];
-            if (pt1) {
-              lines.push({
-                p1: { x: pt2.point.x, y: pt2.point.y },
-                p2: { x: pt1.point.x, y: pt1.point.y },
-                desc: describeLinePath(pt2.point, pt1.point, 21 / 100),
-                level: l,
+          if (layerIndex < currentLayer - 1 && Math.random() < 30 / 100) {
+            firstPoint =
+              crackLayers[layerIndex + 1][(segmentIndex + 1) % segmentCount];
+            if (firstPoint) {
+              crackLines.push({
+                p1: { x: secondPoint.point.x, y: secondPoint.point.y },
+                p2: { x: firstPoint.point.x, y: firstPoint.point.y },
+                desc: calculateLinePathData(
+                  secondPoint.point,
+                  firstPoint.point,
+                  21 / 100
+                ),
+                level: layerIndex,
               });
             }
           }
         }
       }
     }
-    return lines;
+    return crackLines;
   }
 
-  function clearDrawing($canvas) {
+  function clearAllCanvases($canvas) {
     $canvas.each(function () {
-      var ctx = this.getContext("2d");
-      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      var canvasContext = this.getContext("2d");
+      canvasContext.clearRect(
+        0,
+        0,
+        canvasContext.canvas.width,
+        canvasContext.canvas.height
+      );
     });
   }
 
   // Crack effect manager for glass panels
-  class CrackEffectManager {
+  class GlassCrackManager {
     constructor(panel) {
       this.panel = panel;
-      this.clickCount = 0;
+      this.interactionCount = 0;
       this.canvases = [];
-      this.currentCenter = null;
-      this.crackProbability = 0; // Start with 0% chance of cracking
-      this.init();
+      this.crackOriginPoint = null;
+      this.crackChance = 0; // Start with 0% chance of cracking
+      this.initializeCrackSystem();
     }
 
-    init() {
-      this.createCanvasContainer();
+    initializeCrackSystem() {
+      this.setupCrackCanvases();
       this.panel.style.position = "relative";
-      this.panel.addEventListener("click", (e) => this.handleClick(e));
+      this.panel.addEventListener("click", (e) => this.processPanelClick(e));
     }
 
-    createCanvasContainer() {
-      const container = document.createElement("div");
-      container.className = "crack-container";
+    setupCrackCanvases() {
+      const canvasContainer = document.createElement("div");
+      canvasContainer.className = "crack-container";
 
       for (let i = 0; i < 6; i++) {
         const canvas = document.createElement("canvas");
         canvas.className = "crack-canvas";
         if (i === 5) canvas.style.display = "none"; // debug canvas
         this.canvases.push(canvas);
-        container.appendChild(canvas);
+        canvasContainer.appendChild(canvas);
       }
 
-      this.panel.appendChild(container);
-      this.resizeCanvases();
-      window.addEventListener("resize", () => this.resizeCanvases());
+      this.panel.appendChild(canvasContainer);
+      this.resizeCrackCanvases();
+      window.addEventListener("resize", () => this.resizeCrackCanvases());
     }
 
-    resizeCanvases() {
-      const rect = this.panel.getBoundingClientRect();
+    resizeCrackCanvases() {
+      const panelBounds = this.panel.getBoundingClientRect();
       this.canvases.forEach((canvas) => {
-        canvas.width = rect.width;
-        canvas.height = rect.height;
+        canvas.width = panelBounds.width;
+        canvas.height = panelBounds.height;
       });
     }
 
-    handleClick(e) {
-      const rect = this.panel.getBoundingClientRect();
-      this.currentCenter = {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
+    processPanelClick(e) {
+      const panelBounds = this.panel.getBoundingClientRect();
+      this.crackOriginPoint = {
+        x: e.clientX - panelBounds.left,
+        y: e.clientY - panelBounds.top,
       };
 
-      this.clickCount++;
+      this.interactionCount++;
 
       // PROBABILITY-BASED CRACKING SYSTEM:
       // Click 1: 0% chance (no crack)
@@ -516,53 +718,53 @@
       // Click 6: 90% chance
       // Click 7+: 100% chance
 
-      if (this.clickCount === 1) {
+      if (this.interactionCount === 1) {
         return; // First click: 0% chance, do nothing
       }
 
       // Calculate probability based on click count
-      if (this.clickCount === 2) {
-        this.crackProbability = 0.5;
-      } else if (this.clickCount > 2 && this.clickCount <= 6) {
-        this.crackProbability = 0.5 + (this.clickCount - 2) * 0.1; // +10% each click
-      } else if (this.clickCount > 6) {
-        this.crackProbability = 1.0; // 100% chance after 6 clicks
+      if (this.interactionCount === 2) {
+        this.crackChance = 0.5;
+      } else if (this.interactionCount > 2 && this.interactionCount <= 6) {
+        this.crackChance = 0.5 + (this.interactionCount - 2) * 0.1; // +10% each click
+      } else if (this.interactionCount > 6) {
+        this.crackChance = 1.0; // 100% chance after 6 clicks
       }
 
-      const randomValue = Math.random();
-      const willCrack = randomValue <= this.crackProbability;
+      const randomProbability = Math.random();
+      const shouldGenerateCrack = randomProbability <= this.crackChance;
 
-      if (willCrack) {
-        this.createCrack();
+      if (shouldGenerateCrack) {
+        this.generateCrackEffect();
       }
     }
 
-    createCrack() {
-      const options = {
+    generateCrackEffect() {
+      const crackConfig = {
         height: this.panel.clientHeight,
         width: this.panel.clientWidth,
-        center: this.currentCenter,
+        center: this.crackOriginPoint,
         debug: false,
       };
 
-      const paths = findCrackEffectPaths(options);
-      renderCrackEffectAll(this.canvases, paths);
+      const crackSegments = generateCrackPathSegments(crackConfig);
+      renderAllCrackEffects(this.canvases, crackSegments);
     }
   }
 
   // Initialize on all glass panels
-  function initCrackEffects() {
-    const glassPanels = document.querySelectorAll(".glass-panel");
-    glassPanels.forEach((panel) => {
-      new CrackEffectManager(panel);
+  function initializeAllGlassCracks() {
+    const glassPanelElements = document.querySelectorAll(".glass-panel");
+    glassPanelElements.forEach((panel) => {
+      new GlassCrackManager(panel);
     });
   }
 
   // Wait for DOM to be ready
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initCrackEffects);
+    document.addEventListener("DOMContentLoaded", initializeAllGlassCracks);
   } else {
-    initCrackEffects();
+    initializeAllGlassCracks();
   }
 })(window.jQuery || { fn: {} });
 

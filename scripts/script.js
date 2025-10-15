@@ -5,65 +5,65 @@
 // ######################################### //
 (function () {
   const canvas = document.getElementById("particle-canvas");
-  const ctx = canvas.getContext("2d");
+  const canvasContext = canvas.getContext("2d");
   const parallaxElem = document.getElementById("parallax");
 
-  let width, height;
-  let particles = [];
-  const isMobile = window.innerWidth < 480;
-  const particleCount = isMobile ? 18 : 35;
-  const maxDistance = 200;
-  const mouse = { x: null, y: null };
+  let canvasWidth, canvasHeight;
+  let particleArray = [];
+  const isMobileDevice = window.innerWidth < 480;
+  const totalParticles = isMobileDevice ? 18 : 35;
+  const maxConnectionDistance = 200;
+  const cursorPosition = { x: null, y: null };
 
-  function resizeCanvas() {
-    width = canvas.width = canvas.offsetWidth;
-    height = canvas.height = canvas.offsetHeight;
+  function updateCanvasDimensions() {
+    canvasWidth = canvas.width = canvas.offsetWidth;
+    canvasHeight = canvas.height = canvas.offsetHeight;
   }
 
-  window.addEventListener("resize", resizeCanvas);
-  resizeCanvas();
+  window.addEventListener("resize", updateCanvasDimensions);
+  updateCanvasDimensions();
 
   // Create particles
-  for (let i = 0; i < particleCount; i++) {
-    particles.push({
-      x: Math.random() * width,
-      y: Math.random() * height,
+  for (let i = 0; i < totalParticles; i++) {
+    particleArray.push({
+      x: Math.random() * canvasWidth,
+      y: Math.random() * canvasHeight,
       vx: (Math.random() - 0.5) * 0.5,
       vy: (Math.random() - 0.5) * 0.5,
     });
   }
 
-  canvas.addEventListener("mousemove", (e) => {
-    const rect = canvas.getBoundingClientRect();
-    mouse.x = e.clientX - rect.left;
-    mouse.y = e.clientY - rect.top;
+  canvas.addEventListener("mousemove", (event) => {
+    const canvasBounds = canvas.getBoundingClientRect();
+    cursorPosition.x = event.clientX - canvasBounds.left;
+    cursorPosition.y = event.clientY - canvasBounds.top;
   });
 
   canvas.addEventListener("mouseleave", () => {
-    mouse.x = null;
-    mouse.y = null;
+    cursorPosition.x = null;
+    cursorPosition.y = null;
   });
 
-  document.addEventListener("mousemove", (e) => {
+  document.addEventListener("mousemove", (event) => {
     if (!parallaxElem) return;
-    let _w = window.innerWidth / 2;
-    let _h = window.innerHeight / 2;
-    let _mouseX = e.clientX;
-    let _mouseY = e.clientY;
-    let _depth1 = `${50 - (_mouseX - _w) * 0.01}% ${
-      50 - (_mouseY - _h) * 0.01
+    let windowCenterX = window.innerWidth / 2;
+    let windowCenterY = window.innerHeight / 2;
+    let currentMouseX = event.clientX;
+    let currentMouseY = event.clientY;
+    let parallaxLayer1 = `${50 - (currentMouseX - windowCenterX) * 0.01}% ${
+      50 - (currentMouseY - windowCenterY) * 0.01
     }%`;
-    let _depth2 = `${50 - (_mouseX - _w) * 0.02}% ${
-      50 - (_mouseY - _h) * 0.02
+    let parallaxLayer2 = `${50 - (currentMouseX - windowCenterX) * 0.02}% ${
+      50 - (currentMouseY - windowCenterY) * 0.02
     }%`;
-    let _depth3 = `${50 - (_mouseX - _w) * 0.06}% ${
-      50 - (_mouseY - _h) * 0.06
+    let parallaxLayer3 = `${50 - (currentMouseX - windowCenterX) * 0.06}% ${
+      50 - (currentMouseY - windowCenterY) * 0.06
     }%`;
-    let x = `${_depth3}, ${_depth2}, ${_depth1}`;
-    parallaxElem.style.backgroundPosition = x;
+    let backgroundPosition = `${parallaxLayer3}, ${parallaxLayer2}, ${parallaxLayer1}`;
+    parallaxElem.style.backgroundPosition = backgroundPosition;
   });
 
-  function updateVisuals() {
+  function updateScrollEffects() {
     const heroSection = document.querySelector(".hero-section");
     if (!heroSection || !parallaxElem) return;
 
@@ -91,65 +91,77 @@
     canvas.style.opacity = canvasOpacity.toFixed(2);
   }
 
-  window.addEventListener("scroll", updateVisuals);
-  window.addEventListener("resize", updateVisuals);
+  window.addEventListener("scroll", updateScrollEffects);
+  window.addEventListener("resize", updateScrollEffects);
 
-  function draw() {
-    ctx.clearRect(0, 0, width, height);
+  function renderParticleScene() {
+    canvasContext.clearRect(0, 0, canvasWidth, canvasHeight);
 
-    particles.forEach((p) => {
-      p.x += p.vx;
-      p.y += p.vy;
+    particleArray.forEach((currentParticle) => {
+      currentParticle.x += currentParticle.vx;
+      currentParticle.y += currentParticle.vy;
 
-      if (p.x < 0 || p.x > width) p.vx *= -1;
-      if (p.y < 0 || p.y > height) p.vy *= -1;
+      if (currentParticle.x < 0 || currentParticle.x > canvasWidth)
+        currentParticle.vx *= -1;
+      if (currentParticle.y < 0 || currentParticle.y > canvasHeight)
+        currentParticle.vy *= -1;
 
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
-      ctx.fillStyle = "#ccc";
-      ctx.fill();
+      canvasContext.beginPath();
+      canvasContext.arc(
+        currentParticle.x,
+        currentParticle.y,
+        2,
+        0,
+        Math.PI * 2
+      );
+      canvasContext.fillStyle = "#ccc";
+      canvasContext.fill();
     });
 
-    for (let i = 0; i < particleCount; i++) {
-      for (let j = i + 1; j < particleCount; j++) {
-        const dx = particles[i].x - particles[j].x;
-        const dy = particles[i].y - particles[j].y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+    for (let i = 0; i < totalParticles; i++) {
+      for (let j = i + 1; j < totalParticles; j++) {
+        const deltaX = particleArray[i].x - particleArray[j].x;
+        const deltaY = particleArray[i].y - particleArray[j].y;
+        const distanceBetween = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
-        if (dist < maxDistance) {
-          ctx.beginPath();
-          ctx.moveTo(particles[i].x, particles[i].y);
-          ctx.lineTo(particles[j].x, particles[j].y);
-          ctx.strokeStyle = `rgba(200,200,200,${1 - dist / maxDistance})`;
-          ctx.stroke();
+        if (distanceBetween < maxConnectionDistance) {
+          canvasContext.beginPath();
+          canvasContext.moveTo(particleArray[i].x, particleArray[i].y);
+          canvasContext.lineTo(particleArray[j].x, particleArray[j].y);
+          canvasContext.strokeStyle = `rgba(200,200,200,${
+            1 - distanceBetween / maxConnectionDistance
+          })`;
+          canvasContext.stroke();
         }
       }
 
-      if (mouse.x !== null && mouse.y !== null) {
-        const dx = particles[i].x - mouse.x;
-        const dy = particles[i].y - mouse.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+      if (cursorPosition.x !== null && cursorPosition.y !== null) {
+        const deltaX = particleArray[i].x - cursorPosition.x;
+        const deltaY = particleArray[i].y - cursorPosition.y;
+        const distanceBetween = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
-        if (dist < maxDistance) {
-          ctx.beginPath();
-          ctx.moveTo(particles[i].x, particles[i].y);
-          ctx.lineTo(mouse.x, mouse.y);
-          ctx.strokeStyle = `rgba(255,255,255,${1 - dist / maxDistance})`;
-          ctx.stroke();
+        if (distanceBetween < maxConnectionDistance) {
+          canvasContext.beginPath();
+          canvasContext.moveTo(particleArray[i].x, particleArray[i].y);
+          canvasContext.lineTo(cursorPosition.x, cursorPosition.y);
+          canvasContext.strokeStyle = `rgba(255,255,255,${
+            1 - distanceBetween / maxConnectionDistance
+          })`;
+          canvasContext.stroke();
         }
       }
     }
 
-    requestAnimationFrame(draw);
+    requestAnimationFrame(renderParticleScene);
   }
 
-  draw();
+  renderParticleScene();
 })();
 
 // ############### //
 //  Custom cursor  //
 // ############### //
-function initCustomCursor() {
+function initializeCustomCursor() {
   const cursor = document.getElementById("cursor");
   const cursorFollower = document.getElementById("cursorFollower");
 
@@ -160,41 +172,41 @@ function initCustomCursor() {
     return;
   }
 
-  let mouseX = 0;
-  let mouseY = 0;
-  let followerX = 0;
-  let followerY = 0;
-  let hasMoved = false;
+  let cursorX = 0;
+  let cursorY = 0;
+  let followerPositionX = 0;
+  let followerPositionY = 0;
+  let cursorHasMoved = false;
 
   // Start with hidden cursor
   cursor.style.opacity = "0";
   cursorFollower.style.opacity = "0";
 
   // Track mouse position
-  document.addEventListener("mousemove", (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
+  document.addEventListener("mousemove", (event) => {
+    cursorX = event.clientX;
+    cursorY = event.clientY;
 
     // Make cursor visible only on first movement
-    if (!hasMoved) {
-      hasMoved = true;
+    if (!cursorHasMoved) {
+      cursorHasMoved = true;
       cursor.style.opacity = "1";
       cursorFollower.style.opacity = "1";
     }
 
     // Position the main cursor
-    cursor.style.left = `${mouseX - 10}px`;
-    cursor.style.top = `${mouseY - 10}px`;
+    cursor.style.left = `${cursorX - 10}px`;
+    cursor.style.top = `${cursorY - 10}px`;
   });
 
   // Animate follower
   function animateFollower() {
-    if (hasMoved) {
-      followerX += (mouseX - followerX - 20) * 0.2;
-      followerY += (mouseY - followerY - 20) * 0.2;
+    if (cursorHasMoved) {
+      followerPositionX += (cursorX - followerPositionX - 20) * 0.2;
+      followerPositionY += (cursorY - followerPositionY - 20) * 0.2;
 
-      cursorFollower.style.left = `${followerX}px`;
-      cursorFollower.style.top = `${followerY}px`;
+      cursorFollower.style.left = `${followerPositionX}px`;
+      cursorFollower.style.top = `${followerPositionY}px`;
     }
 
     requestAnimationFrame(animateFollower);
@@ -214,17 +226,17 @@ function initCustomCursor() {
   });
 
   // Hover effects
-  const hoverElements = document.querySelectorAll(
+  const interactiveElements = document.querySelectorAll(
     "a, button, .tech-item, .nav-btn, .mobile-nav-btn, .back-to-top"
   );
 
-  hoverElements.forEach((el) => {
-    el.addEventListener("mouseenter", () => {
+  interactiveElements.forEach((interactiveElement) => {
+    interactiveElement.addEventListener("mouseenter", () => {
       cursor.classList.add("hover");
       cursorFollower.classList.add("hover");
     });
 
-    el.addEventListener("mouseleave", () => {
+    interactiveElement.addEventListener("mouseleave", () => {
       cursor.classList.remove("hover");
       cursorFollower.classList.remove("hover");
     });
@@ -234,78 +246,80 @@ function initCustomCursor() {
   document.addEventListener("mouseleave", () => {
     cursor.style.opacity = "0";
     cursorFollower.style.opacity = "0";
-    hasMoved = false; // Reset so it reappears on next movement
+    cursorHasMoved = false; // Reset so it reappears on next movement
   });
 }
 
 // ########################## //
 //  Particle effect on click  //
 // ########################## //
-function initParticleEffect() {
-  document.addEventListener("click", (e) => {
+function initializeClickParticles() {
+  document.addEventListener("click", (event) => {
     // Create 5-8 particles on each click
-    const particleCount = 5 + Math.floor(Math.random() * 4);
+    const particlesPerClick = 5 + Math.floor(Math.random() * 4);
 
-    for (let i = 0; i < particleCount; i++) {
-      createParticle(e.clientX, e.clientY);
+    for (let i = 0; i < particlesPerClick; i++) {
+      generateClickParticle(event.clientX, event.clientY);
     }
   });
 
-  function createParticle(x, y) {
-    const particle = document.createElement("div");
-    particle.classList.add("particle");
-    document.body.appendChild(particle);
+  function generateClickParticle(particleX, particleY) {
+    const clickParticle = document.createElement("div");
+    clickParticle.classList.add("particle");
+    document.body.appendChild(clickParticle);
 
     // Random size, color and animation
-    const size = Math.floor(Math.random() * 10 + 5);
-    const colorValue = Math.random();
-    let color;
+    const particleSize = Math.floor(Math.random() * 10 + 5);
+    const colorSelection = Math.random();
+    let particleColor;
 
-    if (colorValue < 0.33) {
-      color = "#ff3b30";
-    } else if (colorValue < 0.66) {
-      color = "#ff6257";
+    if (colorSelection < 0.33) {
+      particleColor = "#ff3b30";
+    } else if (colorSelection < 0.66) {
+      particleColor = "#ff6257";
     } else {
-      color = "#d70015";
+      particleColor = "#d70015";
     }
 
     // Random direction and distance
-    const angle = Math.random() * Math.PI * 2;
-    const distance = Math.random() * 50 + 30;
-    const duration = Math.random() * 1000 + 500;
+    const particleAngle = Math.random() * Math.PI * 2;
+    const particleDistance = Math.random() * 50 + 30;
+    const particleDuration = Math.random() * 1000 + 500;
 
     // Set initial styles
-    particle.style.width = `${size}px`;
-    particle.style.height = `${size}px`;
-    particle.style.background = color;
-    particle.style.borderRadius = "50%";
-    particle.style.boxShadow = `0 0 ${size / 2}px ${size / 3}px ${color}`;
-    particle.style.left = `${x - size / 2}px`;
-    particle.style.top = `${y - size / 2}px`;
+    clickParticle.style.width = `${particleSize}px`;
+    clickParticle.style.height = `${particleSize}px`;
+    clickParticle.style.background = particleColor;
+    clickParticle.style.borderRadius = "50%";
+    clickParticle.style.boxShadow = `0 0 ${particleSize / 2}px ${
+      particleSize / 3
+    }px ${particleColor}`;
+    clickParticle.style.left = `${particleX - particleSize / 2}px`;
+    clickParticle.style.top = `${particleY - particleSize / 2}px`;
 
     // Animate particle
-    const animation = particle.animate(
+    const particleAnimation = clickParticle.animate(
       [
         {
           transform: `translate(0, 0) scale(1)`,
           opacity: 1,
         },
         {
-          transform: `translate(${Math.cos(angle) * distance}px, ${
-            Math.sin(angle) * distance
-          }px) scale(0)`,
+          transform: `translate(${
+            Math.cos(particleAngle) * particleDistance
+          }px, ${Math.sin(particleAngle) * particleDistance}px) scale(0)`,
           opacity: 0,
         },
       ],
       {
-        duration: duration,
+        duration: particleDuration,
         easing: "cubic-bezier(0, 0.9, 0.57, 1)",
       }
     );
 
     // Remove particle after animation completes
-    animation.onfinish = () => {
-      particle.remove();
+    particleAnimation.onfinish = () => {
+      clickParticle.remove();
     };
   }
 }
@@ -313,30 +327,30 @@ function initParticleEffect() {
 // #################################### //
 //  Handle scroll indicator visibility  //
 // #################################### //
-function initScrollIndicator() {
-  const scrollIndicator = document.getElementById("scrollIndicator");
+function initializeScrollIndicator() {
+  const scrollHintElement = document.getElementById("scrollIndicator");
 
   window.addEventListener("scroll", () => {
     // Hide scroll indicator when user starts scrolling
     if (window.pageYOffset > 50) {
-      scrollIndicator.classList.add("hidden");
+      scrollHintElement.classList.add("hidden");
     } else {
-      scrollIndicator.classList.remove("hidden");
+      scrollHintElement.classList.remove("hidden");
     }
   });
 }
 
-function initMobileNavHaptics() {
-  const isTouchDevice = navigator.maxTouchPoints > 0;
+function initializeMobileHaptics() {
+  const hasTouchCapability = navigator.maxTouchPoints > 0;
 
-  if (!isTouchDevice) return; // Only apply on touch devices
+  if (!hasTouchCapability) return; // Only apply on touch devices
 
-  const navButtons = document.querySelectorAll(
+  const navigationButtons = document.querySelectorAll(
     ".mobile-nav-btn, #mobileMenuBtn"
   );
 
-  navButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
+  navigationButtons.forEach((navButton) => {
+    navButton.addEventListener("click", () => {
       if ("vibrate" in navigator) {
         navigator.vibrate(95);
       }
@@ -347,36 +361,36 @@ function initMobileNavHaptics() {
 // ####################### //
 //  Tilt effect on panels  //
 // ####################### //
-function initTiltEffect() {
-  const glassPanels = document.querySelectorAll(".glass-panel");
+function initializePanelTilt() {
+  const glassPanelElements = document.querySelectorAll(".glass-panel");
 
-  glassPanels.forEach((panel) => {
+  glassPanelElements.forEach((panel) => {
     // Store original transition in dataset
     panel.dataset.originalTransition =
       panel.style.transition || "transform 0.3s ease, box-shadow 0.3s ease";
 
-    let isFirstInteraction = true;
+    let isInitialInteraction = true;
 
-    panel.addEventListener("mousemove", (e) => {
+    panel.addEventListener("mousemove", (event) => {
       if (window.matchMedia("(pointer: coarse)").matches) return;
 
-      const rect = panel.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      const panelBounds = panel.getBoundingClientRect();
+      const mousePanelX = event.clientX - panelBounds.left;
+      const mousePanelY = event.clientY - panelBounds.top;
 
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
+      const panelCenterX = panelBounds.width / 2;
+      const panelCenterY = panelBounds.height / 2;
 
-      const percentX = (x - centerX) / centerX;
-      const percentY = (y - centerY) / centerY;
+      const tiltRatioX = (mousePanelX - panelCenterX) / panelCenterX;
+      const tiltRatioY = (mousePanelY - panelCenterY) / panelCenterY;
 
-      const maxTilt = 5;
-      const tiltX = (percentY * -maxTilt).toFixed(2);
-      const tiltY = (percentX * maxTilt).toFixed(2);
+      const maximumTiltAngle = 5;
+      const tiltAngleX = (tiltRatioY * -maximumTiltAngle).toFixed(2);
+      const tiltAngleY = (tiltRatioX * maximumTiltAngle).toFixed(2);
 
-      if (isFirstInteraction) {
+      if (isInitialInteraction) {
         panel.style.transition = "transform 0.3s ease, box-shadow 0.3s ease";
-        isFirstInteraction = false;
+        isInitialInteraction = false;
 
         // Remove transition after the initial animation completes
         setTimeout(() => {
@@ -384,18 +398,18 @@ function initTiltEffect() {
         }, 300);
       }
 
-      panel.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) translateZ(10px)`;
+      panel.style.transform = `perspective(1000px) rotateX(${tiltAngleX}deg) rotateY(${tiltAngleY}deg) translateZ(10px)`;
 
-      const shadowX = tiltY * 2;
-      const shadowY = tiltX * 2;
+      const shadowOffsetX = tiltAngleY * 2;
+      const shadowOffsetY = tiltAngleX * 2;
       panel.style.boxShadow = `
-        ${shadowX}px ${shadowY}px 25px rgba(0, 0, 0, 0.4),
+        ${shadowOffsetX}px ${shadowOffsetY}px 25px rgba(0, 0, 0, 0.4),
         var(--glass-shadow)
       `;
     });
 
     panel.addEventListener("mouseleave", () => {
-      isFirstInteraction = true; // Reset for next interaction
+      isInitialInteraction = true; // Reset for next interaction
 
       panel.style.transition =
         "transform 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28), box-shadow 0.5s ease";
@@ -420,46 +434,46 @@ function initTiltEffect() {
 //  Main site script logic  //
 // ######################## //
 document.addEventListener("DOMContentLoaded", function () {
-  const sections = document.querySelectorAll("section");
-  const navButtons = document.querySelectorAll(".nav-btn");
-  const mobileNavButtons = document.querySelectorAll(".mobile-nav-btn");
-  const navContainer = document.getElementById("navContainer");
-  const mobileMenuBtn = document.getElementById("mobileMenuBtn");
-  const mobileMenu = document.getElementById("mobileMenu");
-  const menuIcon = mobileMenuBtn.querySelector("i");
-  const backToTop = document.getElementById("backToTop");
-  const scrollProgress = document.getElementById("scrollProgress");
+  const pageSections = document.querySelectorAll("section");
+  const desktopNavButtons = document.querySelectorAll(".nav-btn");
+  const mobileNavigationButtons = document.querySelectorAll(".mobile-nav-btn");
+  const navigationContainer = document.getElementById("navContainer");
+  const mobileMenuButton = document.getElementById("mobileMenuBtn");
+  const mobileMenuPanel = document.getElementById("mobileMenu");
+  const menuToggleIcon = mobileMenuButton.querySelector("i");
+  const backToTopButton = document.getElementById("backToTop");
+  const scrollProgressBar = document.getElementById("scrollProgress");
 
-  initCustomCursor(); // Initialize custom cursor effects
-  initParticleEffect(); // Initialize particle effects on click
-  initScrollIndicator(); // Initialize scroll indicator
-  initMobileNavHaptics(); // Initialize mobile nav haptics
-  initTiltEffect(); // Initialize tilt effect
+  initializeCustomCursor(); // Initialize custom cursor effects
+  initializeClickParticles(); // Initialize particle effects on click
+  initializeScrollIndicator(); // Initialize scroll indicator
+  initializeMobileHaptics(); // Initialize mobile nav haptics
+  initializePanelTilt(); // Initialize tilt effect
 
   // Initialize scroll progress indicator
-  function initScrollProgress() {
+  function initializeScrollProgress() {
     window.addEventListener("scroll", () => {
       const windowHeight =
         document.documentElement.scrollHeight - window.innerHeight;
       const scrolled = (window.scrollY / windowHeight) * 100;
-      scrollProgress.style.width = scrolled + "%";
+      scrollProgressBar.style.width = scrolled + "%";
     });
   }
 
   // Initialize back to top button
-  function initBackToTop() {
+  function initializeBackToTop() {
     window.addEventListener("scroll", () => {
       if (window.pageYOffset > 300) {
-        backToTop.classList.add("visible");
+        backToTopButton.classList.add("visible");
       } else {
-        backToTop.classList.remove("visible");
+        backToTopButton.classList.remove("visible");
       }
     });
 
-    backToTop.addEventListener("click", () => {
-      const isTouchDevice = navigator.maxTouchPoints > 0;
+    backToTopButton.addEventListener("click", () => {
+      const hasTouchCapability = navigator.maxTouchPoints > 0;
 
-      if (isTouchDevice && "vibrate" in navigator) {
+      if (hasTouchCapability && "vibrate" in navigator) {
         navigator.vibrate(95);
       }
       window.scrollTo({
@@ -470,176 +484,176 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Handle scroll animation for navigation
-  function handleNavScroll() {
+  function updateNavigationOnScroll() {
     const scrollY = window.scrollY;
-    const navSelector = document.querySelector(".section-selector");
+    const navigationSelector = document.querySelector(".section-selector");
 
     // Calculate progress (0 to 1) based on scroll position
-    const progress = Math.min(scrollY / 200, 1);
+    const scrollProgressRatio = Math.min(scrollY / 200, 1);
 
     // Apply transformations based on scroll progress
-    if (progress > 0) {
-      navContainer.classList.add("scrolled");
+    if (scrollProgressRatio > 0) {
+      navigationContainer.classList.add("scrolled");
 
       // Apply proportional transformations
-      const scale = 0.95 + 0.05 * (1 - progress);
-      const borderRadius = 50 * progress;
-      const marginTop = 20 * progress;
+      const navigationScale = 0.95 + 0.05 * (1 - scrollProgressRatio);
+      const navigationBorderRadius = 50 * scrollProgressRatio;
+      const navigationMarginTop = 20 * scrollProgressRatio;
 
-      navSelector.style.borderRadius = `${borderRadius}px`;
-      navSelector.style.marginTop = `${marginTop}px`;
-      navSelector.style.transform = `scale(${scale})`;
+      navigationSelector.style.borderRadius = `${navigationBorderRadius}px`;
+      navigationSelector.style.marginTop = `${navigationMarginTop}px`;
+      navigationSelector.style.transform = `scale(${navigationScale})`;
 
       // Adjust width proportionally
-      const widthPercent = 100 - 40 * progress;
-      navSelector.style.width = `${widthPercent}%`;
+      const navigationWidthPercent = 100 - 40 * scrollProgressRatio;
+      navigationSelector.style.width = `${navigationWidthPercent}%`;
 
       // Adjust gap between icons
-      const gap = 1.5 - 0.75 * progress;
-      navSelector.style.gap = `${gap}rem`;
+      const navigationGap = 1.5 - 0.75 * scrollProgressRatio;
+      navigationSelector.style.gap = `${navigationGap}rem`;
     } else {
-      navContainer.classList.remove("scrolled");
+      navigationContainer.classList.remove("scrolled");
       // Reset styles when at top
-      navSelector.style.borderRadius = "0";
-      navSelector.style.marginTop = "0";
-      navSelector.style.transform = "scale(1)";
-      navSelector.style.width = "100%";
-      navSelector.style.gap = "1.5rem";
+      navigationSelector.style.borderRadius = "0";
+      navigationSelector.style.marginTop = "0";
+      navigationSelector.style.transform = "scale(1)";
+      navigationSelector.style.width = "100%";
+      navigationSelector.style.gap = "1.5rem";
     }
   }
 
   // Mobile menu toggle
-  mobileMenuBtn.addEventListener("click", function () {
-    mobileMenu.classList.toggle("open");
-    if (mobileMenu.classList.contains("open")) {
-      menuIcon.classList.remove("fa-bars");
-      menuIcon.classList.add("fa-times");
-      mobileMenuBtn.setAttribute("aria-expanded", "true");
+  mobileMenuButton.addEventListener("click", function () {
+    mobileMenuPanel.classList.toggle("open");
+    if (mobileMenuPanel.classList.contains("open")) {
+      menuToggleIcon.classList.remove("fa-bars");
+      menuToggleIcon.classList.add("fa-times");
+      mobileMenuButton.setAttribute("aria-expanded", "true");
     } else {
-      menuIcon.classList.remove("fa-times");
-      menuIcon.classList.add("fa-bars");
-      mobileMenuBtn.setAttribute("aria-expanded", "false");
+      menuToggleIcon.classList.remove("fa-times");
+      menuToggleIcon.classList.add("fa-bars");
+      mobileMenuButton.setAttribute("aria-expanded", "false");
     }
   });
 
   // Close menu when clicking outside
-  document.addEventListener("click", function (event) {
+  document.addEventListener("click", function (clickEvent) {
     if (
-      mobileMenu.classList.contains("open") &&
-      !mobileMenu.contains(event.target) &&
-      !mobileMenuBtn.contains(event.target)
+      mobileMenuPanel.classList.contains("open") &&
+      !mobileMenuPanel.contains(clickEvent.target) &&
+      !mobileMenuButton.contains(clickEvent.target)
     ) {
-      mobileMenu.classList.remove("open");
-      menuIcon.classList.remove("fa-times");
-      menuIcon.classList.add("fa-bars");
-      mobileMenuBtn.setAttribute("aria-expanded", "false");
+      mobileMenuPanel.classList.remove("open");
+      menuToggleIcon.classList.remove("fa-times");
+      menuToggleIcon.classList.add("fa-bars");
+      mobileMenuButton.setAttribute("aria-expanded", "false");
     }
   });
 
   // Smooth scroll to section
-  function scrollToSection(targetId) {
-    const targetSection = document.getElementById(targetId);
+  function navigateToSection(targetSectionId) {
+    const targetSectionElement = document.getElementById(targetSectionId);
 
-    if (targetSection) {
+    if (targetSectionElement) {
       // Close mobile menu if open
-      if (mobileMenu.classList.contains("open")) {
-        mobileMenu.classList.remove("open");
-        menuIcon.classList.remove("fa-times");
-        menuIcon.classList.add("fa-bars");
-        mobileMenuBtn.setAttribute("aria-expanded", "false");
+      if (mobileMenuPanel.classList.contains("open")) {
+        mobileMenuPanel.classList.remove("open");
+        menuToggleIcon.classList.remove("fa-times");
+        menuToggleIcon.classList.add("fa-bars");
+        mobileMenuButton.setAttribute("aria-expanded", "false");
       }
 
       // Smooth scroll to section
-      targetSection.scrollIntoView({ behavior: "smooth" });
+      targetSectionElement.scrollIntoView({ behavior: "smooth" });
     }
   }
 
   // Add event listeners to desktop nav buttons
-  navButtons.forEach((button) => {
-    button.addEventListener("click", function () {
-      const targetId = this.getAttribute("data-target");
-      scrollToSection(targetId);
+  desktopNavButtons.forEach((navButton) => {
+    navButton.addEventListener("click", function () {
+      const targetSectionId = this.getAttribute("data-target");
+      navigateToSection(targetSectionId);
     });
 
     // Add keyboard accessibility
-    button.addEventListener("keydown", function (e) {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        const targetId = this.getAttribute("data-target");
-        scrollToSection(targetId);
+    navButton.addEventListener("keydown", function (event) {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        const targetSectionId = this.getAttribute("data-target");
+        navigateToSection(targetSectionId);
       }
     });
   });
 
   // Add event listeners to mobile nav buttons
-  mobileNavButtons.forEach((button) => {
-    button.addEventListener("click", function () {
-      const targetId = this.getAttribute("data-target");
-      scrollToSection(targetId);
+  mobileNavigationButtons.forEach((navButton) => {
+    navButton.addEventListener("click", function () {
+      const targetSectionId = this.getAttribute("data-target");
+      navigateToSection(targetSectionId);
     });
 
     // Add keyboard accessibility
-    button.addEventListener("keydown", function (e) {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        const targetId = this.getAttribute("data-target");
-        scrollToSection(targetId);
+    navButton.addEventListener("keydown", function (event) {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        const targetSectionId = this.getAttribute("data-target");
+        navigateToSection(targetSectionId);
       }
     });
   });
 
   // Update active navigation button based on scroll position
-  function updateActiveNav() {
-    let currentSection = "";
+  function updateActiveNavigation() {
+    let activeSectionId = "";
 
-    sections.forEach((section) => {
-      const sectionTop = section.offsetTop;
-      const sectionHeight = section.clientHeight;
+    pageSections.forEach((section) => {
+      const sectionOffsetTop = section.offsetTop;
+      const sectionClientHeight = section.clientHeight;
 
-      if (window.pageYOffset >= sectionTop - 200) {
-        currentSection = section.getAttribute("id");
+      if (window.pageYOffset >= sectionOffsetTop - 200) {
+        activeSectionId = section.getAttribute("id");
       }
     });
 
     // Update desktop nav
-    navButtons.forEach((button) => {
-      button.classList.remove("active");
-      if (button.getAttribute("data-target") === currentSection) {
-        button.classList.add("active");
+    desktopNavButtons.forEach((navButton) => {
+      navButton.classList.remove("active");
+      if (navButton.getAttribute("data-target") === activeSectionId) {
+        navButton.classList.add("active");
       }
     });
 
     // Update mobile nav
-    mobileNavButtons.forEach((button) => {
-      button.classList.remove("active");
-      if (button.getAttribute("data-target") === currentSection) {
-        button.classList.add("active");
+    mobileNavigationButtons.forEach((navButton) => {
+      navButton.classList.remove("active");
+      if (navButton.getAttribute("data-target") === activeSectionId) {
+        navButton.classList.add("active");
       }
     });
   }
 
   // Animate elements based on scroll position
-  function animateOnScroll() {
+  function handleScrollAnimations() {
     // Only keep the navigation update
-    updateActiveNav();
+    updateActiveNavigation();
   }
 
   // Initialize and set up scroll listener
-  initScrollProgress();
-  initBackToTop();
-  handleNavScroll();
-  animateOnScroll();
+  initializeScrollProgress();
+  initializeBackToTop();
+  updateNavigationOnScroll();
+  handleScrollAnimations();
 
   // Use requestAnimationFrame for smoother scroll handling
-  let ticking = false;
+  let isScrollUpdatePending = false;
   window.addEventListener("scroll", function () {
-    if (!ticking) {
+    if (!isScrollUpdatePending) {
       requestAnimationFrame(function () {
-        handleNavScroll();
-        animateOnScroll();
-        ticking = false;
+        updateNavigationOnScroll();
+        handleScrollAnimations();
+        isScrollUpdatePending = false;
       });
-      ticking = true;
+      isScrollUpdatePending = true;
     }
   });
 });
