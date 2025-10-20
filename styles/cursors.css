@@ -1,0 +1,10 @@
+/* /styles/cursors.css */
+
+a:hover,
+button:hover,
+.bronze-badge,
+.achievement-front,
+.achievement-back {
+    cursor: url("../cursors/devil-32x.png"), pointer;
+}
+
