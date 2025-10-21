@@ -180,9 +180,6 @@ function initializeCustomCursor() {
 
   // Define exclusion list - classes where cursor should be hidden
   const exclusionClasses = [
-    ".bronze-badge",
-    ".achievement-front",
-    ".achievement-back",
     ".private-project",
   ];
 
