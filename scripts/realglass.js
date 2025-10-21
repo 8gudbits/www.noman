@@ -663,6 +663,8 @@
     constructor(panel) {
       this.panel = panel;
       this.interactionCount = 0;
+      this.crackCount = 0; // Track actual number of cracks generated
+      this.maxCracks = 6; // Maximum number of cracks allowed
       this.canvases = [];
       this.crackOriginPoint = null;
       this.crackChance = 0; // Start with 0% chance of cracking
@@ -701,6 +703,11 @@
     }
 
     processPanelClick(e) {
+      // Check if we've reached the maximum number of cracks
+      if (this.crackCount >= this.maxCracks) {
+        return; // Stop processing clicks if max cracks reached
+      }
+
       const panelBounds = this.panel.getBoundingClientRect();
       this.crackOriginPoint = {
         x: e.clientX - panelBounds.left,
@@ -735,7 +742,13 @@
       const shouldGenerateCrack = randomProbability <= this.crackChance;
 
       if (shouldGenerateCrack) {
+        this.crackCount++; // Increment crack count
         this.generateCrackEffect();
+
+        // Check if we've reached the maximum cracks
+        if (this.crackCount >= this.maxCracks) {
+          this.disableCracking(); // Disable further cracking
+        }
       }
     }
 
@@ -749,6 +762,17 @@
 
       const crackSegments = generateCrackPathSegments(crackConfig);
       renderAllCrackEffects(this.canvases, crackSegments);
+    }
+
+    disableCracking() {
+      // Remove the click event listener to prevent further cracks
+      this.panel.removeEventListener("click", this.processPanelClick);
+
+      // Optional: Add a visual indicator that no more cracks can be added
+      this.panel.style.cursor = "not-allowed";
+
+      // Optional: Add a subtle visual effect when max cracks reached
+      this.panel.style.opacity = "0.95";
     }
   }
 

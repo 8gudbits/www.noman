@@ -9,21 +9,16 @@ a:hover {
     cursor: url("../cursors/nordzy-pointer-32x.cur"), pointer;
 }
 
-.bronze-badge,
-.achievement-front,
-.achievement-back {
-    cursor: url("../cursors/devil-pointer-32x.cur"), pointer;
+.dragging {
+    cursor: url("../cursors/nordzy-move-32x.cur"), move;
 }
 
-.private-project::before {
-    cursor: url("../cursors/nordzy-not-allowed-32x.cur"), not-allowed;
+.private-project,
+.disclaimer {
+    cursor: url("../cursors/devil-pointer-48x.cur"), pointer;
 }
 
 .tech-item {
     cursor: url("../cursors/nordzy-openhand-32x.cur"), grab;
-}
-
-.dragging {
-    cursor: url("../cursors/nordzy-move-32x.cur"), move;
 }
 

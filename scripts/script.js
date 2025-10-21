@@ -181,6 +181,8 @@ function initializeCustomCursor() {
   // Define exclusion list - classes where cursor should be hidden
   const exclusionClasses = [
     ".private-project",
+    ".disclaimer",
+    ".tech-item",
   ];
 
   // Start with hidden cursor
@@ -251,58 +253,10 @@ function initializeCustomCursor() {
   exclusionClasses.forEach((className) => {
     const excludedElements = document.querySelectorAll(className);
     excludedElements.forEach((element) => {
-      element.addEventListener("mouseenter", (event) => {
-        // For private-project, only hide cursor when hovering over the lock icon area
-        if (className === ".private-project") {
-          const rect = element.getBoundingClientRect();
-          const lockIconArea = {
-            left: rect.right - 40, // Lock icon is at right: 1rem (approx 16px + some buffer)
-            right: rect.right,
-            top: rect.top,
-            bottom: rect.top + 40, // Lock icon height area
-          };
-
-          // Check if mouse is in the lock icon area
-          if (
-            cursorX >= lockIconArea.left &&
-            cursorX <= lockIconArea.right &&
-            cursorY >= lockIconArea.top &&
-            cursorY <= lockIconArea.bottom
-          ) {
-            cursor.style.opacity = "0";
-            cursorFollower.style.opacity = "0";
-          }
-        } else {
-          // For other excluded elements, always hide cursor
-          cursor.style.opacity = "0";
-          cursorFollower.style.opacity = "0";
-        }
-      });
-
-      element.addEventListener("mousemove", (event) => {
-        // For private-project, continuously check if we're over the lock icon
-        if (className === ".private-project") {
-          const rect = element.getBoundingClientRect();
-          const lockIconArea = {
-            left: rect.right - 40,
-            right: rect.right,
-            top: rect.top,
-            bottom: rect.top + 40,
-          };
-
-          if (
-            event.clientX >= lockIconArea.left &&
-            event.clientX <= lockIconArea.right &&
-            event.clientY >= lockIconArea.top &&
-            event.clientY <= lockIconArea.bottom
-          ) {
-            cursor.style.opacity = "0";
-            cursorFollower.style.opacity = "0";
-          } else {
-            cursor.style.opacity = "1";
-            cursorFollower.style.opacity = "1";
-          }
-        }
+      element.addEventListener("mouseenter", () => {
+        // For excluded elements, hide cursor
+        cursor.style.opacity = "0";
+        cursorFollower.style.opacity = "0";
       });
 
       element.addEventListener("mouseleave", () => {
