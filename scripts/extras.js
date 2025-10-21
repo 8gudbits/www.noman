@@ -1016,9 +1016,7 @@ class ItemDragManager {
     const draggedRect = this.currentlyDraggedItem.getBoundingClientRect();
     const items = Array.from(this.container.children).filter(
       (child) =>
-        child !== this.currentlyDraggedItem &&
-        child !== this.placeholder &&
-        !child.classList.contains("permanent-deleted")
+        child !== this.currentlyDraggedItem && child !== this.placeholder
     );
 
     // Find which item the dragged item is covering by 50% or more
@@ -1103,7 +1101,6 @@ class ItemDragManager {
         isNearDeleted = true;
         deletedItem.style.borderColor = "var(--accent-light-red)";
         deletedItem.style.background = "rgba(255, 59, 48, 0.2)";
-        deletedItem.style.transform = "scale(1.05)";
       } else {
         deletedItem.style.borderColor = "";
         deletedItem.style.background = "";
