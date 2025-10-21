@@ -1006,7 +1006,6 @@ class ItemDragManager {
     this.currentlyDraggedItem.style.left = `${x}px`;
     this.currentlyDraggedItem.style.top = `${y}px`;
     this.currentlyDraggedItem.style.zIndex = "1000";
-    this.currentlyDraggedItem.style.pointerEvents = "none";
     this.currentlyDraggedItem.style.width = `${this.itemWidth}px`;
     this.currentlyDraggedItem.style.height = `${this.itemHeight}px`;
   }
