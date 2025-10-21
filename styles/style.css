@@ -809,7 +809,6 @@ h2::after {
     height: 100px;
     text-align: center;
     padding: 1rem;
-    cursor: pointer;
 }
 
 .tech-item i {

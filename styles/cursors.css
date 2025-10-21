@@ -1,10 +1,29 @@
 /* /styles/cursors.css */
 
-a:hover,
+body {
+    cursor: url("../cursors/nordzy-default-32x.cur"), auto;
+}
+
 button:hover,
+a:hover {
+    cursor: url("../cursors/nordzy-pointer-32x.cur"), pointer;
+}
+
 .bronze-badge,
 .achievement-front,
 .achievement-back {
-    cursor: url("../cursors/devil-32x.png"), pointer;
+    cursor: url("../cursors/devil-pointer-32x.cur"), pointer;
+}
+
+.private-project::before {
+    cursor: url("../cursors/nordzy-not-allowed-32x.cur"), not-allowed;
+}
+
+.tech-item {
+    cursor: url("../cursors/nordzy-openhand-32x.cur"), grab;
+}
+
+.dragging {
+    cursor: url("../cursors/nordzy-move-32x.cur"), move;
 }
 
