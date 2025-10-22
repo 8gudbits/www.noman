@@ -13,6 +13,10 @@ a:hover {
     cursor: url("../cursors/nordzy-move-32x.cur"), move;
 }
 
+.android-cursor {
+    cursor: url("../cursors/android-default-32x.cur"), pointer;
+}
+
 .private-project,
 .disclaimer {
     cursor: url("../cursors/devil-pointer-48x.cur"), pointer;
