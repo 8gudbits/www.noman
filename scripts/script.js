@@ -180,9 +180,10 @@ function initializeCustomCursor() {
 
   // Define exclusion list - classes where cursor should be hidden
   const exclusionClasses = [
-    ".android-cursor",
-    ".private-project",
-    ".disclaimer",
+    ".bugdroid-cursor",
+    ".chrome-cursor",
+    ".tux-cursor",
+    ".devil-pointer",
     ".tech-item",
   ];
 
