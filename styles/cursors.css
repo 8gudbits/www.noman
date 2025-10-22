@@ -10,7 +10,7 @@ a:hover {
 }
 
 .dragging {
-    cursor: url("../cursors/nordzy-move-32x.cur"), move;
+    cursor: url("../cursors/nordzy-move-32x.cur"), grabbing;
 }
 
 .mona-cursor {
@@ -38,10 +38,10 @@ a:hover {
 }
 
 .tech-item {
-    cursor: url("../cursors/nordzy-openhand-32x.cur"), auto;
+    cursor: url("../cursors/nordzy-openhand-32x.cur"), grab;
 }
 
 .tech-item.dragging {
-    cursor: url("../cursors/nordzy-move-32x.cur"), move;
+    cursor: url("../cursors/nordzy-move-32x.cur"), grabbing;
 }
 
