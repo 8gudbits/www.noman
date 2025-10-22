@@ -13,12 +13,35 @@ a:hover {
     cursor: url("../cursors/nordzy-move-32x.cur"), move;
 }
 
-.private-project,
-.disclaimer {
-    cursor: url("../cursors/devil-pointer-48x.cur"), pointer;
+.mona-cursor {
+    cursor: url("../cursors/mona-default-32x.cur"), auto;
+}
+
+.bugdroid-cursor {
+    cursor: url("../cursors/bugdroid-default-32x.cur"), auto;
+}
+
+.chrome-cursor {
+    cursor: url("../cursors/chrome-default-32x.cur"), auto;
+}
+
+.tux-cursor {
+    cursor: url("../cursors/tux-default-32x.cur"), auto;
+}
+
+.devil-pointer {
+    cursor: url("../cursors/devil-pointer-48x.cur"), auto;
+}
+
+.concept-cursor {
+    cursor: url("../cursors/concept-default-32x.cur"), auto;
 }
 
 .tech-item {
-    cursor: url("../cursors/nordzy-openhand-32x.cur"), grab;
+    cursor: url("../cursors/nordzy-openhand-32x.cur"), auto;
+}
+
+.tech-item.dragging {
+    cursor: url("../cursors/nordzy-move-32x.cur"), move;
 }
 
