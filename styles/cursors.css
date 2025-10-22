@@ -30,10 +30,18 @@ a:hover {
 }
 
 .devil-pointer {
-    cursor: url("../cursors/devil-pointer-48x.cur"), pointer;
+    cursor: url("../cursors/devil-pointer-48x.cur"), auto;
+}
+
+.concept-cursor {
+    cursor: url("../cursors/concept-default-32x.cur"), auto;
 }
 
 .tech-item {
-    cursor: url("../cursors/nordzy-openhand-32x.cur"), grab;
+    cursor: url("../cursors/nordzy-openhand-32x.cur"), auto;
+}
+
+.tech-item.dragging {
+    cursor: url("../cursors/nordzy-move-32x.cur"), move;
 }
 

@@ -184,6 +184,7 @@ function initializeCustomCursor() {
     ".chrome-cursor",
     ".tux-cursor",
     ".devil-pointer",
+    ".concept-cursor",
     ".tech-item",
   ];
 
