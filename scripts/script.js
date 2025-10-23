@@ -180,12 +180,12 @@ function initializeCustomCursor() {
 
   // Define exclusion list - classes where cursor should be hidden
   const exclusionClasses = [
-    ".bugdroid-cursor",
-    ".chrome-cursor",
-    ".tux-cursor",
-    ".devil-pointer",
-    ".concept-cursor",
-    ".tech-item",
+    // ".bugdroid-cursor",
+    // ".chrome-cursor",
+    // ".tux-cursor",
+    // ".devil-pointer",
+    // ".concept-cursor",
+    ".tech-stack-section",
   ];
 
   // Start with hidden cursor
@@ -392,10 +392,6 @@ function initializePanelTilt() {
   const glassPanelElements = document.querySelectorAll(".glass-panel");
 
   glassPanelElements.forEach((panel) => {
-    // Store original transition in dataset
-    panel.dataset.originalTransition =
-      panel.style.transition || "transform 0.3s ease, box-shadow 0.3s ease";
-
     let isInitialInteraction = true;
 
     panel.addEventListener("mousemove", (event) => {
@@ -416,16 +412,19 @@ function initializePanelTilt() {
       const tiltAngleY = (tiltRatioX * maximumTiltAngle).toFixed(2);
 
       if (isInitialInteraction) {
+        // Store current transform before applying tilt
+        panel.dataset.preTiltTransform = panel.style.transform || "";
         panel.style.transition = "transform 0.3s ease, box-shadow 0.3s ease";
         isInitialInteraction = false;
 
-        // Remove transition after the initial animation completes
         setTimeout(() => {
-          panel.style.transition = "none";
+          panel.style.transition = "box-shadow 0.3s ease";
         }, 300);
       }
 
-      panel.style.transform = `perspective(1000px) rotateX(${tiltAngleX}deg) rotateY(${tiltAngleY}deg) translateZ(10px)`;
+      // Apply tilt ON TOP of existing transform for transitions.js
+      const baseTransform = panel.dataset.preTiltTransform || "";
+      panel.style.transform = `${baseTransform} perspective(1000px) rotateX(${tiltAngleX}deg) rotateY(${tiltAngleY}deg) translateZ(10px)`;
 
       const shadowOffsetX = tiltAngleY * 2;
       const shadowOffsetY = tiltAngleX * 2;
@@ -436,18 +435,19 @@ function initializePanelTilt() {
     });
 
     panel.addEventListener("mouseleave", () => {
-      isInitialInteraction = true; // Reset for next interaction
+      isInitialInteraction = true;
 
       panel.style.transition =
         "transform 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28), box-shadow 0.5s ease";
 
-      panel.style.transform =
-        "perspective(1000px) rotateX(0) rotateY(0) translateZ(0)";
+      // Restore the pre-tilt transform (scroll position)
+      panel.style.transform = panel.dataset.preTiltTransform || "";
+
       panel.style.boxShadow = "var(--glass-shadow)";
 
-      // Restore original transition after animation completes
       setTimeout(() => {
-        panel.style.transition = panel.dataset.originalTransition;
+        panel.style.transition = panel.dataset.originalTransition || "";
+        delete panel.dataset.preTiltTransform;
       }, 500);
     });
 
@@ -661,8 +661,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Animate elements based on scroll position
   function handleScrollAnimations() {
-    // Only keep the navigation update
-    updateActiveNavigation();
+    updateActiveNavigation(); // Only keep the navigation update
   }
 
   // Initialize and set up scroll listener

@@ -767,12 +767,6 @@
     disableCracking() {
       // Remove the click event listener to prevent further cracks
       this.panel.removeEventListener("click", this.processPanelClick);
-
-      // Optional: Add a visual indicator that no more cracks can be added
-      this.panel.style.cursor = "not-allowed";
-
-      // Optional: Add a subtle visual effect when max cracks reached
-      this.panel.style.opacity = "0.95";
     }
   }
 
