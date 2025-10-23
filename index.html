@@ -29,16 +29,19 @@
       "sameAs": ["https://github.com/8gudbits"]
     }
     </script>
-    <!-- Assets -->
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="styles/all.min.css" />
     <link rel="stylesheet" href="styles/style.css" />
+    <link rel="stylesheet" href="styles/cursors.css" />
     <link rel="stylesheet" href="styles/transitions.css" />
     <link rel="stylesheet" href="styles/extras.css" />
+    <link rel="stylesheet" href="styles/moveable.css" />
     <link rel="stylesheet" href="styles/realglass.css" />
-    <link rel="stylesheet" href="styles/cursors.css" />
+    <!-- JavaScripts -->
     <script defer src="scripts/script.js"></script>
     <script defer src="scripts/transitions.js"></script>
     <script defer src="scripts/extras.js"></script>
+    <script defer src="scripts/moveable.js"></script>
     <script defer src="scripts/realglass.js"></script>
   </head>
   <body>
@@ -377,23 +380,11 @@
         <div class="projects-grid">
 
           <div class="private-project glass-panel scroll-zoom">
-            <h3>flashback</h3>
-            <p>
-              Extracts passwords from all logged-in accounts in ~1 second with
-              no UI or visible traces.
-            </p>
-            <div class="project-links">
-              <a href="https://www.youtube.com/watch?v=nerwLF5S2bg" class="project-link" target="_blank">
-                <i class="fas fa-external-link-alt"></i> Demo
-              </a>
-            </div>
-          </div>
-
-          <div class="private-project glass-panel scroll-zoom">
             <h3>ngl-hfs</h3>
             <p>
-              Hidden HTTP file server for persistent remote access with batch
-              script execution capabilities.
+              Hidden HTTP file server for persistent remote access, supporting
+              arbitrary file execution (e.g., batch, EXE, VBS) and privileged
+              command-line interaction.
             </p>
             <div class="project-links">
               <a href="https://www.youtube.com/watch?v=yjfox7k5nWA" class="project-link" target="_blank">
@@ -403,10 +394,24 @@
           </div>
 
           <div class="private-project glass-panel scroll-zoom">
+            <h3>flashback</h3>
+            <p>
+              Extracts credentials from all active user sessions in ~1 second, no
+              UI, no traces. Outputs to CSV for seamless import into password
+              managers like KeePass.
+            </p>
+            <div class="project-links">
+              <a href="https://www.youtube.com/watch?v=nerwLF5S2bg" class="project-link" target="_blank">
+                <i class="fas fa-external-link-alt"></i> Demo
+              </a>
+            </div>
+          </div>
+
+          <div class="private-project glass-panel scroll-zoom">
             <h3>tacten</h3>
             <p>
-              Enables SSH-style remote access for command and file control,
-              designed for stealth and persistence.
+              Enables SSH-style remote access for command-line interaction and
+              file access, designed for stealth and persistence.
             </p>
             <div class="project-links">
               <a href="https://www.youtube.com/watch?v=WDR4VW4q5lk" class="project-link" target="_blank">
@@ -467,7 +472,7 @@
       </section>
 
       <!-- Tech Stack section -->
-      <section id="tech-stack">
+      <section id="tech-stack" class="tech-stack-section">
         <h2 class="scroll-zoom">Tech Stack</h2>
         <div class="tech-grid">
           <div class="tech-item glass-panel scroll-orbit">

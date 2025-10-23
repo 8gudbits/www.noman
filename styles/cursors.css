@@ -9,24 +9,36 @@ a:hover {
     cursor: url("../cursors/nordzy-pointer-32x.cur"), pointer;
 }
 
-.dragging {
-    cursor: url("../cursors/nordzy-move-32x.cur"), grabbing;
-}
-
 .mona-cursor {
     cursor: url("../cursors/mona-default-32x.cur"), auto;
+}
+
+.dragging {
+    cursor: url("../cursors/nordzy-move-32x.cur"), grabbing;
 }
 
 .bugdroid-cursor {
     cursor: url("../cursors/bugdroid-default-32x.cur"), auto;
 }
 
+.bugdroid-cursor.dragging {
+    cursor: url("../cursors/nordzy-move-32x.cur"), grabbing;
+}
+
 .chrome-cursor {
     cursor: url("../cursors/chrome-default-32x.cur"), auto;
 }
 
+.chrome-cursor.dragging {
+    cursor: url("../cursors/nordzy-move-32x.cur"), grabbing;
+}
+
 .tux-cursor {
     cursor: url("../cursors/tux-default-32x.cur"), auto;
+}
+
+.tux-cursor.dragging {
+    cursor: url("../cursors/nordzy-move-32x.cur"), grabbing;
 }
 
 .devil-pointer {

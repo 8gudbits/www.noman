@@ -1,12 +1,29 @@
 // /scripts/transitions.js
 
+// Helper function to set styles without triggering transitions
+function setStylesWithoutTransition(element, styles) {
+  const originalTransition = element.style.transition; // Store original transition
+  element.style.transition = "none"; // Disable transitions
+
+  // Apply all styles
+  Object.keys(styles).forEach((property) => {
+    element.style[property] = styles[property];
+  });
+
+  element.offsetHeight; // Force reflow to ensure styles are applied
+
+  // Restore transitions on next frame
+  requestAnimationFrame(() => {
+    element.style.transition = originalTransition;
+  });
+}
+
 // ##################################### //
 //  Scroll-based directional animations  //
 // ##################################### //
 function initializeDirectionalScrollFade() {
-  const fadeElements = document.querySelectorAll(".scroll-fade");
-
   function updateDirectionalFadeAnimations() {
+    const fadeElements = document.querySelectorAll(".scroll-fade");
     const windowHeight = window.innerHeight;
 
     fadeElements.forEach((currentElement) => {
@@ -16,7 +33,7 @@ function initializeDirectionalScrollFade() {
       let animationStartPoint = windowHeight * 0.75;
       let animationEndPoint = windowHeight * 0.55;
 
-      // Special case for last item
+      // Special case for last item (prevents half animated state)
       if (currentElement.id === "last-item") {
         animationStartPoint = windowHeight * 0.95;
         animationEndPoint = windowHeight * 0.85;
@@ -27,25 +44,22 @@ function initializeDirectionalScrollFade() {
         (animationStartPoint - animationEndPoint);
       const normalizedProgress = Math.max(0, Math.min(1, scrollProgress));
 
-      currentElement.style.opacity = normalizedProgress.toFixed(2);
+      let transformValue = "";
 
       if (currentElement.classList.contains("fade-up")) {
-        currentElement.style.transform = `translateY(${
-          (1 - normalizedProgress) * 30
-        }px)`;
+        transformValue = `translateY(${(1 - normalizedProgress) * 30}px)`;
       } else if (currentElement.classList.contains("fade-down")) {
-        currentElement.style.transform = `translateY(${
-          (normalizedProgress - 1) * 30
-        }px)`;
+        transformValue = `translateY(${(normalizedProgress - 1) * 30}px)`;
       } else if (currentElement.classList.contains("fade-left")) {
-        currentElement.style.transform = `translateX(${
-          (1 - normalizedProgress) * 30
-        }px)`;
+        transformValue = `translateX(${(1 - normalizedProgress) * 30}px)`;
       } else if (currentElement.classList.contains("fade-right")) {
-        currentElement.style.transform = `translateX(${
-          (normalizedProgress - 1) * 30
-        }px)`;
+        transformValue = `translateX(${(normalizedProgress - 1) * 30}px)`;
       }
+
+      setStylesWithoutTransition(currentElement, {
+        opacity: normalizedProgress.toFixed(2),
+        transform: transformValue,
+      });
     });
   }
 
@@ -58,9 +72,8 @@ function initializeDirectionalScrollFade() {
 //  Scroll-based zoom animations //
 // ############################# //
 function initializeScrollZoomEffect() {
-  const zoomElements = document.querySelectorAll(".scroll-zoom");
-
   function updateZoomScrollAnimations() {
+    const zoomElements = document.querySelectorAll(".scroll-zoom");
     const windowHeight = window.innerHeight;
 
     zoomElements.forEach((currentElement) => {
@@ -74,8 +87,11 @@ function initializeScrollZoomEffect() {
       const normalizedProgress = Math.max(0, Math.min(1, scrollProgress));
 
       const zoomScale = 0.8 + normalizedProgress * 0.2;
-      currentElement.style.opacity = normalizedProgress.toFixed(2);
-      currentElement.style.transform = `scale(${zoomScale.toFixed(3)})`;
+
+      setStylesWithoutTransition(currentElement, {
+        opacity: normalizedProgress.toFixed(2),
+        transform: `scale(${zoomScale.toFixed(3)})`,
+      });
     });
   }
 
@@ -85,9 +101,8 @@ function initializeScrollZoomEffect() {
 }
 
 function initializeScrollBlurEffect() {
-  const blurElements = document.querySelectorAll(".scroll-blur");
-
   function updateBlurScrollAnimations() {
+    const blurElements = document.querySelectorAll(".scroll-blur");
     const windowHeight = window.innerHeight;
 
     blurElements.forEach((currentElement) => {
@@ -100,9 +115,12 @@ function initializeScrollBlurEffect() {
         (blurStartThreshold - blurEndThreshold);
       const normalizedProgress = Math.max(0, Math.min(1, scrollProgress));
 
-      const blurAmount = 8 * (1 - normalizedProgress); // from 8px to 0px
-      currentElement.style.opacity = normalizedProgress.toFixed(2);
-      currentElement.style.filter = `blur(${blurAmount.toFixed(2)}px)`;
+      const blurAmount = 8 * (1 - normalizedProgress);
+
+      setStylesWithoutTransition(currentElement, {
+        opacity: normalizedProgress.toFixed(2),
+        filter: `blur(${blurAmount.toFixed(2)}px)`,
+      });
     });
   }
 
@@ -115,9 +133,8 @@ function initializeScrollBlurEffect() {
 //  Scroll-based orbit effect  //
 // ########################### //
 function initializeScrollOrbitEffect() {
-  const orbitElements = document.querySelectorAll(".tech-item.scroll-orbit");
-
   function updateOrbitScrollAnimations() {
+    const orbitElements = document.querySelectorAll(".tech-item.scroll-orbit");
     const windowHeight = window.innerHeight;
 
     orbitElements.forEach((currentElement, elementIndex) => {
@@ -130,17 +147,18 @@ function initializeScrollOrbitEffect() {
         (orbitStartThreshold - orbitEndThreshold);
       const normalizedProgress = Math.max(0, Math.min(1, scrollProgress));
 
-      // Orbit effect: rotate + translate + scale
-      const rotationAngle = -15 + normalizedProgress * 15; // -15deg to 0deg
-      const horizontalOffset = 60 * (1 - normalizedProgress); // from 60px to 0
-      const orbitScale = 0.9 + normalizedProgress * 0.1; // from 0.9 to 1.0
+      const rotationAngle = -15 + normalizedProgress * 15;
+      const horizontalOffset = 60 * (1 - normalizedProgress);
+      const orbitScale = 0.9 + normalizedProgress * 0.1;
 
-      currentElement.style.opacity = normalizedProgress.toFixed(2);
-      currentElement.style.transform = `rotate(${rotationAngle.toFixed(
-        1
-      )}deg) translateX(${horizontalOffset.toFixed(
-        1
-      )}px) scale(${orbitScale.toFixed(3)})`;
+      setStylesWithoutTransition(currentElement, {
+        opacity: normalizedProgress.toFixed(2),
+        transform: `rotate(${rotationAngle.toFixed(
+          1
+        )}deg) translateX(${horizontalOffset.toFixed(
+          1
+        )}px) scale(${orbitScale.toFixed(3)})`,
+      });
     });
   }
 
@@ -149,10 +167,58 @@ function initializeScrollOrbitEffect() {
   updateOrbitScrollAnimations();
 }
 
+// Force refresh for dynamically added elements
+window.refreshAllScrollAnimations = function () {
+  // Trigger all animation functions immediately
+  const event = new Event("scroll");
+  window.dispatchEvent(event);
+};
+
+// MutationObserver to detect new elements and apply correct styles immediately
+function initializeMutationObserver() {
+  const observer = new MutationObserver((mutations) => {
+    let hasNewAnimatableElements = false;
+
+    mutations.forEach((mutation) => {
+      if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === 1) {
+            // Element node
+            if (
+              node.matches(
+                ".scroll-fade, .scroll-zoom, .scroll-blur, .scroll-orbit"
+              ) ||
+              (node.querySelector &&
+                node.querySelector(
+                  ".scroll-fade, .scroll-zoom, .scroll-blur, .scroll-orbit"
+                ))
+            ) {
+              hasNewAnimatableElements = true;
+            }
+          }
+        });
+      }
+    });
+
+    if (hasNewAnimatableElements) {
+      // Use setTimeout to ensure DOM is fully updated, then apply correct styles
+      setTimeout(() => {
+        window.refreshAllScrollAnimations();
+      }, 0);
+    }
+  });
+
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   initializeDirectionalScrollFade();
   initializeScrollZoomEffect();
   initializeScrollBlurEffect();
   initializeScrollOrbitEffect();
+  initializeMutationObserver();
 });
 
