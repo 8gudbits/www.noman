@@ -12,15 +12,6 @@
     touch-action: auto;
 }
 
-.draggable-item.dragging {
-    transform: scale(1.05) rotate(2deg);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-    z-index: 1000;
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
-    width: var(--item-width) !important;
-    height: var(--item-height) !important;
-}
-
 .draggable-item.placeholder {
     opacity: 0.4;
     transform: scale(0.95);
@@ -106,10 +97,6 @@
 
 /* Mobile optimizations */
 @media (max-width: 768px) {
-    .draggable-item.dragging {
-        transform: scale(1.02) rotate(1deg);
-    }
-
     .floating-delete-zone {
         bottom: 20px;
         left: 20px;
@@ -129,5 +116,20 @@
         background: linear-gradient(90deg, var(--accent-red), var(--accent-dark-red));
         transform: translateY(-5px);
     }
+}
+
+/* CRITICAL FIX:
+ * Force all rows to have the same height based on the tallest item in the entire grid
+ * to prevent vertical size mismatch when the item is being dragged because it causes
+ * the entire row to expand vertically if the dragged item has higher height then any
+ * items of that row which looks quite odd.
+*/
+.achievements-grid,
+.projects-grid {
+    grid-auto-rows: 1fr;
+}
+
+.tech-grid {
+    grid-auto-rows: 1fr;
 }
 

@@ -371,9 +371,6 @@ class ItemDragManager {
     this.itemWidth = rect.width;
     this.itemHeight = rect.height;
 
-    item.style.setProperty("--item-width", `${this.itemWidth}px`);
-    item.style.setProperty("--item-height", `${this.itemHeight}px`);
-
     this.dragStartOffset.x = clientX - rect.left;
     this.dragStartOffset.y = clientY - rect.top;
 
@@ -729,8 +726,6 @@ class ItemDragManager {
       this.currentlyDraggedItem.style.transform = "";
       this.currentlyDraggedItem.style.width = "";
       this.currentlyDraggedItem.style.height = "";
-      this.currentlyDraggedItem.style.removeProperty("--item-width");
-      this.currentlyDraggedItem.style.removeProperty("--item-height");
     }
 
     if (this.placeholder && this.placeholder.parentElement) {
