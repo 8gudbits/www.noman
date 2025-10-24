@@ -23,7 +23,6 @@
   window.addEventListener("resize", updateCanvasDimensions);
   updateCanvasDimensions();
 
-  // Create particles
   for (let i = 0; i < totalParticles; i++) {
     particleArray.push({
       x: Math.random() * canvasWidth,
@@ -71,7 +70,6 @@
     const fadeStart = heroSection.offsetHeight * 0.8;
     const fadeEnd = fadeStart + window.innerHeight;
 
-    // Parallax opacity
     let parallaxOpacity = 0;
     if (scrollY >= fadeStart && scrollY <= fadeEnd) {
       parallaxOpacity = (scrollY - fadeStart) / (fadeEnd - fadeStart);
@@ -80,7 +78,6 @@
     }
     parallaxElem.style.opacity = parallaxOpacity.toFixed(2);
 
-    // Canvas fade-out
     let canvasOpacity = 1;
     const canvasFadeEnd = fadeStart + 200;
     if (scrollY >= fadeStart && scrollY <= canvasFadeEnd) {
@@ -158,14 +155,13 @@
   renderParticleScene();
 })();
 
-// ############### //
-//  Custom cursor  //
-// ############### //
+// ######################### //
+//  Custom cursor followers  //
+// ######################### //
 function initializeCustomCursor() {
   const cursor = document.getElementById("cursor");
   const cursorFollower = document.getElementById("cursorFollower");
 
-  // Hide cursor on mobile devices
   if (window.matchMedia("(pointer: coarse)").matches) {
     cursor.style.display = "none";
     cursorFollower.style.display = "none";
@@ -180,36 +176,26 @@ function initializeCustomCursor() {
 
   // Define exclusion list - classes where cursor should be hidden
   const exclusionClasses = [
-    // ".bugdroid-cursor",
-    // ".chrome-cursor",
-    // ".tux-cursor",
-    // ".devil-pointer",
-    // ".concept-cursor",
     ".tech-stack-section",
   ];
 
-  // Start with hidden cursor
   cursor.style.opacity = "0";
   cursorFollower.style.opacity = "0";
 
-  // Track mouse position
   document.addEventListener("mousemove", (event) => {
     cursorX = event.clientX;
     cursorY = event.clientY;
 
-    // Make cursor visible only on first movement
     if (!cursorHasMoved) {
       cursorHasMoved = true;
       cursor.style.opacity = "1";
       cursorFollower.style.opacity = "1";
     }
 
-    // Position the main cursor
     cursor.style.left = `${cursorX - 10}px`;
     cursor.style.top = `${cursorY - 10}px`;
   });
 
-  // Animate follower
   function animateFollower() {
     if (cursorHasMoved) {
       followerPositionX += (cursorX - followerPositionX - 20) * 0.2;
@@ -224,7 +210,6 @@ function initializeCustomCursor() {
 
   animateFollower();
 
-  // Click effect
   document.addEventListener("mousedown", () => {
     cursor.classList.add("click");
     cursorFollower.classList.add("click");
@@ -235,7 +220,6 @@ function initializeCustomCursor() {
     cursorFollower.classList.remove("click");
   });
 
-  // Hover effects for interactive elements
   const interactiveElements = document.querySelectorAll(
     "a, button, .tech-item, .nav-btn, .mobile-nav-btn, .back-to-top"
   );
@@ -252,12 +236,10 @@ function initializeCustomCursor() {
     });
   });
 
-  // Exclusion list hover effects - hide cursor
   exclusionClasses.forEach((className) => {
     const excludedElements = document.querySelectorAll(className);
     excludedElements.forEach((element) => {
       element.addEventListener("mouseenter", () => {
-        // For excluded elements, hide cursor
         cursor.style.opacity = "0";
         cursorFollower.style.opacity = "0";
       });
@@ -269,11 +251,10 @@ function initializeCustomCursor() {
     });
   });
 
-  // Hide cursor when leaving window
   document.addEventListener("mouseleave", () => {
     cursor.style.opacity = "0";
     cursorFollower.style.opacity = "0";
-    cursorHasMoved = false; // Reset so it reappears on next movement
+    cursorHasMoved = false;
   });
 }
 
@@ -282,7 +263,6 @@ function initializeCustomCursor() {
 // ########################## //
 function initializeClickParticles() {
   document.addEventListener("click", (event) => {
-    // Create 5-8 particles on each click
     const particlesPerClick = 5 + Math.floor(Math.random() * 4);
 
     for (let i = 0; i < particlesPerClick; i++) {
@@ -295,7 +275,6 @@ function initializeClickParticles() {
     clickParticle.classList.add("particle");
     document.body.appendChild(clickParticle);
 
-    // Random size, color and animation
     const particleSize = Math.floor(Math.random() * 10 + 5);
     const colorSelection = Math.random();
     let particleColor;
@@ -308,12 +287,10 @@ function initializeClickParticles() {
       particleColor = "#d70015";
     }
 
-    // Random direction and distance
     const particleAngle = Math.random() * Math.PI * 2;
     const particleDistance = Math.random() * 50 + 30;
     const particleDuration = Math.random() * 1000 + 500;
 
-    // Set initial styles
     clickParticle.style.width = `${particleSize}px`;
     clickParticle.style.height = `${particleSize}px`;
     clickParticle.style.background = particleColor;
@@ -324,7 +301,6 @@ function initializeClickParticles() {
     clickParticle.style.left = `${particleX - particleSize / 2}px`;
     clickParticle.style.top = `${particleY - particleSize / 2}px`;
 
-    // Animate particle
     const particleAnimation = clickParticle.animate(
       [
         {
@@ -344,7 +320,6 @@ function initializeClickParticles() {
       }
     );
 
-    // Remove particle after animation completes
     particleAnimation.onfinish = () => {
       clickParticle.remove();
     };
@@ -358,7 +333,6 @@ function initializeScrollIndicator() {
   const scrollHintElement = document.getElementById("scrollIndicator");
 
   window.addEventListener("scroll", () => {
-    // Hide scroll indicator when user starts scrolling
     if (window.pageYOffset > 50) {
       scrollHintElement.classList.add("hidden");
     } else {
@@ -370,7 +344,7 @@ function initializeScrollIndicator() {
 function initializeMobileHaptics() {
   const hasTouchCapability = navigator.maxTouchPoints > 0;
 
-  if (!hasTouchCapability) return; // Only apply on touch devices
+  if (!hasTouchCapability) return;
 
   const navigationButtons = document.querySelectorAll(
     ".mobile-nav-btn, #mobileMenuBtn"
@@ -381,78 +355,6 @@ function initializeMobileHaptics() {
       if ("vibrate" in navigator) {
         navigator.vibrate(95);
       }
-    });
-  });
-}
-
-// ####################### //
-//  Tilt effect on panels  //
-// ####################### //
-function initializePanelTilt() {
-  const glassPanelElements = document.querySelectorAll(".glass-panel");
-
-  glassPanelElements.forEach((panel) => {
-    let isInitialInteraction = true;
-
-    panel.addEventListener("mousemove", (event) => {
-      if (window.matchMedia("(pointer: coarse)").matches) return;
-
-      const panelBounds = panel.getBoundingClientRect();
-      const mousePanelX = event.clientX - panelBounds.left;
-      const mousePanelY = event.clientY - panelBounds.top;
-
-      const panelCenterX = panelBounds.width / 2;
-      const panelCenterY = panelBounds.height / 2;
-
-      const tiltRatioX = (mousePanelX - panelCenterX) / panelCenterX;
-      const tiltRatioY = (mousePanelY - panelCenterY) / panelCenterY;
-
-      const maximumTiltAngle = 5;
-      const tiltAngleX = (tiltRatioY * -maximumTiltAngle).toFixed(2);
-      const tiltAngleY = (tiltRatioX * maximumTiltAngle).toFixed(2);
-
-      if (isInitialInteraction) {
-        // Store current transform before applying tilt
-        panel.dataset.preTiltTransform = panel.style.transform || "";
-        panel.style.transition = "transform 0.3s ease, box-shadow 0.3s ease";
-        isInitialInteraction = false;
-
-        setTimeout(() => {
-          panel.style.transition = "box-shadow 0.3s ease";
-        }, 300);
-      }
-
-      // Apply tilt ON TOP of existing transform for transitions.js
-      const baseTransform = panel.dataset.preTiltTransform || "";
-      panel.style.transform = `${baseTransform} perspective(1000px) rotateX(${tiltAngleX}deg) rotateY(${tiltAngleY}deg) translateZ(10px)`;
-
-      const shadowOffsetX = tiltAngleY * 2;
-      const shadowOffsetY = tiltAngleX * 2;
-      panel.style.boxShadow = `
-        ${shadowOffsetX}px ${shadowOffsetY}px 25px rgba(0, 0, 0, 0.4),
-        var(--glass-shadow)
-      `;
-    });
-
-    panel.addEventListener("mouseleave", () => {
-      isInitialInteraction = true;
-
-      panel.style.transition =
-        "transform 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28), box-shadow 0.5s ease";
-
-      // Restore the pre-tilt transform (scroll position)
-      panel.style.transform = panel.dataset.preTiltTransform || "";
-
-      panel.style.boxShadow = "var(--glass-shadow)";
-
-      setTimeout(() => {
-        panel.style.transition = panel.dataset.originalTransition || "";
-        delete panel.dataset.preTiltTransform;
-      }, 500);
-    });
-
-    panel.addEventListener("mouseenter", () => {
-      panel.style.transition = "transform 0.3s ease, box-shadow 0.3s ease";
     });
   });
 }
@@ -471,13 +373,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const backToTopButton = document.getElementById("backToTop");
   const scrollProgressBar = document.getElementById("scrollProgress");
 
-  initializeCustomCursor(); // Initialize custom cursor effects
-  initializeClickParticles(); // Initialize particle effects on click
-  initializeScrollIndicator(); // Initialize scroll indicator
-  initializeMobileHaptics(); // Initialize mobile nav haptics
-  initializePanelTilt(); // Initialize tilt effect
+  initializeCustomCursor();
+  initializeClickParticles();
+  initializeScrollIndicator();
+  initializeMobileHaptics();
 
-  // Initialize scroll progress indicator
   function initializeScrollProgress() {
     window.addEventListener("scroll", () => {
       const windowHeight =
@@ -487,7 +387,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Initialize back to top button
   function initializeBackToTop() {
     window.addEventListener("scroll", () => {
       if (window.pageYOffset > 300) {
@@ -510,19 +409,15 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Handle scroll animation for navigation
   function updateNavigationOnScroll() {
     const scrollY = window.scrollY;
     const navigationSelector = document.querySelector(".section-selector");
 
-    // Calculate progress (0 to 1) based on scroll position
     const scrollProgressRatio = Math.min(scrollY / 200, 1);
 
-    // Apply transformations based on scroll progress
     if (scrollProgressRatio > 0) {
       navigationContainer.classList.add("scrolled");
 
-      // Apply proportional transformations
       const navigationScale = 0.95 + 0.05 * (1 - scrollProgressRatio);
       const navigationBorderRadius = 50 * scrollProgressRatio;
       const navigationMarginTop = 20 * scrollProgressRatio;
@@ -531,16 +426,13 @@ document.addEventListener("DOMContentLoaded", function () {
       navigationSelector.style.marginTop = `${navigationMarginTop}px`;
       navigationSelector.style.transform = `scale(${navigationScale})`;
 
-      // Adjust width proportionally
       const navigationWidthPercent = 100 - 40 * scrollProgressRatio;
       navigationSelector.style.width = `${navigationWidthPercent}%`;
 
-      // Adjust gap between icons
       const navigationGap = 1.5 - 0.75 * scrollProgressRatio;
       navigationSelector.style.gap = `${navigationGap}rem`;
     } else {
       navigationContainer.classList.remove("scrolled");
-      // Reset styles when at top
       navigationSelector.style.borderRadius = "0";
       navigationSelector.style.marginTop = "0";
       navigationSelector.style.transform = "scale(1)";
@@ -549,7 +441,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // Mobile menu toggle
   mobileMenuButton.addEventListener("click", function () {
     mobileMenuPanel.classList.toggle("open");
     if (mobileMenuPanel.classList.contains("open")) {
@@ -563,7 +454,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Close menu when clicking outside
   document.addEventListener("click", function (clickEvent) {
     if (
       mobileMenuPanel.classList.contains("open") &&
@@ -577,12 +467,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Smooth scroll to section
   function navigateToSection(targetSectionId) {
     const targetSectionElement = document.getElementById(targetSectionId);
 
     if (targetSectionElement) {
-      // Close mobile menu if open
       if (mobileMenuPanel.classList.contains("open")) {
         mobileMenuPanel.classList.remove("open");
         menuToggleIcon.classList.remove("fa-times");
@@ -590,19 +478,16 @@ document.addEventListener("DOMContentLoaded", function () {
         mobileMenuButton.setAttribute("aria-expanded", "false");
       }
 
-      // Smooth scroll to section
       targetSectionElement.scrollIntoView({ behavior: "smooth" });
     }
   }
 
-  // Add event listeners to desktop nav buttons
   desktopNavButtons.forEach((navButton) => {
     navButton.addEventListener("click", function () {
       const targetSectionId = this.getAttribute("data-target");
       navigateToSection(targetSectionId);
     });
 
-    // Add keyboard accessibility
     navButton.addEventListener("keydown", function (event) {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
@@ -612,14 +497,12 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // Add event listeners to mobile nav buttons
   mobileNavigationButtons.forEach((navButton) => {
     navButton.addEventListener("click", function () {
       const targetSectionId = this.getAttribute("data-target");
       navigateToSection(targetSectionId);
     });
 
-    // Add keyboard accessibility
     navButton.addEventListener("keydown", function (event) {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
@@ -629,7 +512,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // Update active navigation button based on scroll position
   function updateActiveNavigation() {
     let activeSectionId = "";
 
@@ -642,7 +524,6 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
-    // Update desktop nav
     desktopNavButtons.forEach((navButton) => {
       navButton.classList.remove("active");
       if (navButton.getAttribute("data-target") === activeSectionId) {
@@ -650,7 +531,6 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
-    // Update mobile nav
     mobileNavigationButtons.forEach((navButton) => {
       navButton.classList.remove("active");
       if (navButton.getAttribute("data-target") === activeSectionId) {
@@ -659,18 +539,15 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Animate elements based on scroll position
   function handleScrollAnimations() {
-    updateActiveNavigation(); // Only keep the navigation update
+    updateActiveNavigation();
   }
 
-  // Initialize and set up scroll listener
   initializeScrollProgress();
   initializeBackToTop();
   updateNavigationOnScroll();
   handleScrollAnimations();
 
-  // Use requestAnimationFrame for smoother scroll handling
   let isScrollUpdatePending = false;
   window.addEventListener("scroll", function () {
     if (!isScrollUpdatePending) {

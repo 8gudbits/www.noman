@@ -290,8 +290,7 @@ if (document.readyState === "complete") {
   let devToolsToast = null;
 
   function displayDevToolsSourceToast() {
-    // Don't show multiple toasts
-    if (devToolsToast && document.body.contains(devToolsToast)) return;
+    if (devToolsToast && document.body.contains(devToolsToast)) return; // Don't show multiple toasts
 
     devToolsToast = document.createElement("div");
     devToolsToast.className = "devtools-toast";
@@ -313,7 +312,6 @@ if (document.readyState === "complete") {
       }
     }, 8000); // Auto-hide after 8 seconds
 
-    // Also hide on click
     devToolsToast.addEventListener("click", removeDevToolsToast);
   }
 
@@ -380,7 +378,6 @@ function initializeInactivitySleep() {
   sleepOverlay = document.createElement("div");
   sleepOverlay.className = "sleep-overlay";
 
-  // Create heartbeat monitor HTML
   sleepOverlay.innerHTML = `
         <div class="heart-rate">
             <svg
@@ -406,7 +403,6 @@ function initializeInactivitySleep() {
   document.body.appendChild(sleepOverlay);
   resetInactivityTimers();
 
-  // Reset timers on any interaction
   document.addEventListener("mousemove", wakeFromSleepMode);
   document.addEventListener("keydown", wakeFromSleepMode);
   document.addEventListener("click", wakeFromSleepMode);
@@ -431,7 +427,6 @@ function beginSleepSequence() {
     sleepOverlay.classList.remove("blur");
     sleepOverlay.classList.add("blank");
 
-    // Show heartbeat after blank screen
     heartbeatDisplayTimer = setTimeout(() => {
       sleepOverlay.classList.add("show-heartbeat");
     }, 8000); // 8 seconds after going blank
@@ -439,7 +434,6 @@ function beginSleepSequence() {
 }
 
 function wakeFromSleepMode() {
-  // Remove all sleep-related classes
   sleepOverlay.classList.remove("blur", "blank", "show-heartbeat");
   sleepOverlay.classList.add("waking");
 

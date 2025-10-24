@@ -1,8 +1,8 @@
 // /scripts/realglass.js
 
-// ################# //
-//  Cracking effect  //
-// ################# //
+// ####################### //
+//  Glass cracking effect  //
+// ####################### //
 (function ($) {
   function drawCrackRefraction(
     canvas,
@@ -658,16 +658,15 @@
     });
   }
 
-  // Crack effect manager for glass panels
   class GlassCrackManager {
     constructor(panel) {
       this.panel = panel;
       this.interactionCount = 0;
-      this.crackCount = 0; // Track actual number of cracks generated
-      this.maxCracks = 6; // Maximum number of cracks allowed
+      this.crackCount = 0;
+      this.maxCracks = 6;
       this.canvases = [];
       this.crackOriginPoint = null;
-      this.crackChance = 0; // Start with 0% chance of cracking
+      this.crackChance = 0;
       this.initializeCrackSystem();
     }
 
@@ -703,9 +702,8 @@
     }
 
     processPanelClick(e) {
-      // Check if we've reached the maximum number of cracks
       if (this.crackCount >= this.maxCracks) {
-        return; // Stop processing clicks if max cracks reached
+        return;
       }
 
       const panelBounds = this.panel.getBoundingClientRect();
@@ -716,7 +714,7 @@
 
       this.interactionCount++;
 
-      // PROBABILITY-BASED CRACKING SYSTEM:
+      // PROBABILITY-BASED CRACKING SYSTEM
       // Click 1: 0% chance (no crack)
       // Click 2: 50% chance
       // Click 3: 60% chance (50% + 10%)
@@ -726,28 +724,26 @@
       // Click 7+: 100% chance
 
       if (this.interactionCount === 1) {
-        return; // First click: 0% chance, do nothing
+        return;
       }
 
-      // Calculate probability based on click count
       if (this.interactionCount === 2) {
         this.crackChance = 0.5;
       } else if (this.interactionCount > 2 && this.interactionCount <= 6) {
-        this.crackChance = 0.5 + (this.interactionCount - 2) * 0.1; // +10% each click
+        this.crackChance = 0.5 + (this.interactionCount - 2) * 0.1;
       } else if (this.interactionCount > 6) {
-        this.crackChance = 1.0; // 100% chance after 6 clicks
+        this.crackChance = 1.0;
       }
 
       const randomProbability = Math.random();
       const shouldGenerateCrack = randomProbability <= this.crackChance;
 
       if (shouldGenerateCrack) {
-        this.crackCount++; // Increment crack count
+        this.crackCount++;
         this.generateCrackEffect();
 
-        // Check if we've reached the maximum cracks
         if (this.crackCount >= this.maxCracks) {
-          this.disableCracking(); // Disable further cracking
+          this.disableCracking();
         }
       }
     }
@@ -765,12 +761,10 @@
     }
 
     disableCracking() {
-      // Remove the click event listener to prevent further cracks
       this.panel.removeEventListener("click", this.processPanelClick);
     }
   }
 
-  // Initialize on all glass panels
   function initializeAllGlassCracks() {
     const glassPanelElements = document.querySelectorAll(".glass-panel");
     glassPanelElements.forEach((panel) => {
@@ -778,7 +772,6 @@
     });
   }
 
-  // Wait for DOM to be ready
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initializeAllGlassCracks);
   } else {

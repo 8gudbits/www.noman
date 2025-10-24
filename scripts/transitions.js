@@ -2,17 +2,15 @@
 
 // Helper function to set styles without triggering transitions
 function setStylesWithoutTransition(element, styles) {
-  const originalTransition = element.style.transition; // Store original transition
-  element.style.transition = "none"; // Disable transitions
+  const originalTransition = element.style.transition;
+  element.style.transition = "none";
 
-  // Apply all styles
   Object.keys(styles).forEach((property) => {
     element.style[property] = styles[property];
   });
 
-  element.offsetHeight; // Force reflow to ensure styles are applied
+  element.offsetHeight;
 
-  // Restore transitions on next frame
   requestAnimationFrame(() => {
     element.style.transition = originalTransition;
   });
@@ -29,11 +27,9 @@ function initializeDirectionalScrollFade() {
     fadeElements.forEach((currentElement) => {
       const elementBounds = currentElement.getBoundingClientRect();
 
-      // Default scroll window
       let animationStartPoint = windowHeight * 0.75;
       let animationEndPoint = windowHeight * 0.55;
 
-      // Special case for last item (prevents half animated state)
       if (currentElement.id === "last-item") {
         animationStartPoint = windowHeight * 0.95;
         animationEndPoint = windowHeight * 0.85;
@@ -60,6 +56,12 @@ function initializeDirectionalScrollFade() {
         opacity: normalizedProgress.toFixed(2),
         transform: transformValue,
       });
+
+      if (normalizedProgress === 1) {
+        currentElement.classList.add("animation-complete");
+      } else {
+        currentElement.classList.remove("animation-complete");
+      }
     });
   }
 
@@ -92,6 +94,12 @@ function initializeScrollZoomEffect() {
         opacity: normalizedProgress.toFixed(2),
         transform: `scale(${zoomScale.toFixed(3)})`,
       });
+
+      if (normalizedProgress === 1) {
+        currentElement.classList.add("animation-complete");
+      } else {
+        currentElement.classList.remove("animation-complete");
+      }
     });
   }
 
@@ -121,6 +129,12 @@ function initializeScrollBlurEffect() {
         opacity: normalizedProgress.toFixed(2),
         filter: `blur(${blurAmount.toFixed(2)}px)`,
       });
+
+      if (normalizedProgress === 1) {
+        currentElement.classList.add("animation-complete");
+      } else {
+        currentElement.classList.remove("animation-complete");
+      }
     });
   }
 
@@ -159,6 +173,12 @@ function initializeScrollOrbitEffect() {
           1
         )}px) scale(${orbitScale.toFixed(3)})`,
       });
+
+      if (normalizedProgress === 1) {
+        currentElement.classList.add("animation-complete");
+      } else {
+        currentElement.classList.remove("animation-complete");
+      }
     });
   }
 
@@ -167,51 +187,128 @@ function initializeScrollOrbitEffect() {
   updateOrbitScrollAnimations();
 }
 
-// Force refresh for dynamically added elements
-window.refreshAllScrollAnimations = function () {
-  // Trigger all animation functions immediately
-  const event = new Event("scroll");
-  window.dispatchEvent(event);
-};
-
-// MutationObserver to detect new elements and apply correct styles immediately
-function initializeMutationObserver() {
+// ####################### //
+//  Tilt effect on panels  //
+// ####################### //
+function initializePanelTilt() {
   const observer = new MutationObserver((mutations) => {
-    let hasNewAnimatableElements = false;
-
     mutations.forEach((mutation) => {
-      if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
-        mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === 1) {
-            // Element node
-            if (
-              node.matches(
-                ".scroll-fade, .scroll-zoom, .scroll-blur, .scroll-orbit"
-              ) ||
-              (node.querySelector &&
-                node.querySelector(
-                  ".scroll-fade, .scroll-zoom, .scroll-blur, .scroll-orbit"
-                ))
-            ) {
-              hasNewAnimatableElements = true;
-            }
+      if (
+        mutation.type === "attributes" &&
+        mutation.attributeName === "class"
+      ) {
+        const panel = mutation.target;
+        if (panel.classList.contains("glass-panel")) {
+          if (
+            panel.classList.contains("animation-complete") &&
+            !panel.hasAttribute("data-tilt-initialized")
+          ) {
+            setupTiltForPanel(panel);
+            panel.setAttribute("data-tilt-initialized", "true");
+          } else if (
+            !panel.classList.contains("animation-complete") &&
+            panel.hasAttribute("data-tilt-initialized")
+          ) {
+            removeTiltFromPanel(panel);
+            panel.removeAttribute("data-tilt-initialized");
           }
-        });
+        }
       }
     });
+  });
 
-    if (hasNewAnimatableElements) {
-      // Use setTimeout to ensure DOM is fully updated, then apply correct styles
-      setTimeout(() => {
-        window.refreshAllScrollAnimations();
-      }, 0);
+  document.querySelectorAll(".glass-panel").forEach((panel) => {
+    observer.observe(panel, { attributes: true });
+
+    if (panel.classList.contains("animation-complete")) {
+      setupTiltForPanel(panel);
+      panel.setAttribute("data-tilt-initialized", "true");
     }
   });
+}
 
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true,
-  });
+function setupTiltForPanel(panel) {
+  let isInitialInteraction = true;
+
+  const mousemoveHandler = (event) => {
+    if (window.matchMedia("(pointer: coarse)").matches) return;
+
+    const panelBounds = panel.getBoundingClientRect();
+    const mousePanelX = event.clientX - panelBounds.left;
+    const mousePanelY = event.clientY - panelBounds.top;
+
+    const panelCenterX = panelBounds.width / 2;
+    const panelCenterY = panelBounds.height / 2;
+
+    const tiltRatioX = (mousePanelX - panelCenterX) / panelCenterX;
+    const tiltRatioY = (mousePanelY - panelCenterY) / panelCenterY;
+
+    const maximumTiltAngle = 5;
+    const tiltAngleX = (tiltRatioY * -maximumTiltAngle).toFixed(2);
+    const tiltAngleY = (tiltRatioX * maximumTiltAngle).toFixed(2);
+
+    if (isInitialInteraction) {
+      panel.style.transition = "transform 0.3s ease, box-shadow 0.3s ease";
+      isInitialInteraction = false;
+      setTimeout(() => {
+        panel.style.transition = "box-shadow 0.3s ease";
+      }, 300);
+    }
+
+    panel.style.transform = `perspective(1000px) rotateX(${tiltAngleX}deg) rotateY(${tiltAngleY}deg) translateZ(10px)`;
+
+    const shadowOffsetX = tiltAngleY * 2;
+    const shadowOffsetY = tiltAngleX * 2;
+    panel.style.boxShadow = `${shadowOffsetX}px ${shadowOffsetY}px 25px rgba(0, 0, 0, 0.4), var(--glass-shadow)`;
+  };
+
+  const mouseleaveHandler = () => {
+    isInitialInteraction = true;
+    panel.style.transition =
+      "transform 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28), box-shadow 0.5s ease";
+
+    panel.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px)`;
+    panel.style.boxShadow = "var(--glass-shadow)";
+
+    setTimeout(() => {
+      panel.style.transition = "";
+    }, 500);
+  };
+
+  const mouseenterHandler = () => {
+    panel.style.transition = "transform 0.3s ease, box-shadow 0.3s ease";
+  };
+
+  panel.addEventListener("mousemove", mousemoveHandler);
+  panel.addEventListener("mouseleave", mouseleaveHandler);
+  panel.addEventListener("mouseenter", mouseenterHandler);
+
+  panel._tiltHandlers = {
+    mousemoveHandler,
+    mouseleaveHandler,
+    mouseenterHandler,
+  };
+}
+
+function removeTiltFromPanel(panel) {
+  if (panel._tiltHandlers) {
+    panel.removeEventListener(
+      "mousemove",
+      panel._tiltHandlers.mousemoveHandler
+    );
+    panel.removeEventListener(
+      "mouseleave",
+      panel._tiltHandlers.mouseleaveHandler
+    );
+    panel.removeEventListener(
+      "mouseenter",
+      panel._tiltHandlers.mouseenterHandler
+    );
+    delete panel._tiltHandlers;
+  }
+
+  panel.style.boxShadow = "var(--glass-shadow)";
+  panel.style.transition = "";
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -219,6 +316,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initializeScrollZoomEffect();
   initializeScrollBlurEffect();
   initializeScrollOrbitEffect();
+  initializePanelTilt();
   initializeMutationObserver();
 });
 
