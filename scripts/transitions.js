@@ -317,6 +317,5 @@ document.addEventListener("DOMContentLoaded", () => {
   initializeScrollBlurEffect();
   initializeScrollOrbitEffect();
   initializePanelTilt();
-  initializeMutationObserver();
 });
 
