@@ -406,9 +406,9 @@ body {
     background: var(--glass-bg);
 }
 
-/* ######## */
-/*  Layout  */
-/* ######## */
+/* ################## */
+/*  Container Layout  */
+/* ################## */
 .container {
     max-width: 1200px;
     margin: 0 auto;
@@ -493,7 +493,9 @@ header {
     z-index: -1;
 }
 
-/* Scroll Down Indicator */
+/* ####################### */
+/*  Scroll Down Indicator  */
+/* ####################### */
 .scroll-indicator {
     display: flex;
     flex-direction: column;
@@ -1215,7 +1217,7 @@ footer {
     }
 }
 
-/* For tablets and larger phones - keep the glass effect */
+/* For tablets and larger phones */
 @media (min-width: 481px) and (max-width: 768px) {
     .about p {
         font-size: clamp(1.1rem, 3vw, 1.2rem);

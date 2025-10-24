@@ -95,7 +95,6 @@
     transform: translateY(-5px);
 }
 
-/* Mobile optimizations */
 @media (max-width: 768px) {
     .floating-delete-zone {
         bottom: 20px;
@@ -122,7 +121,7 @@
  * Force all rows to have the same height based on the tallest item in the entire grid
  * to prevent vertical size mismatch when the item is being dragged because it causes
  * the entire row to expand vertically if the dragged item has higher height then any
- * items of that row which looks quite odd.
+ * items of that row which looks really odd.
 */
 .achievements-grid,
 .projects-grid {
