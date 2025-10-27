@@ -348,8 +348,6 @@ if (document.readyState === "complete") {
     },
   });
 
-  console.log("%c", element);
-
   // Method 3: Check for resize (devtools opening/closing)
   window.addEventListener("resize", function () {
     setTimeout(function () {
