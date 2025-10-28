@@ -64,6 +64,59 @@ document.addEventListener("visibilitychange", function () {
   }
 });
 
+// ############################## //
+//  Fullscreen prompt on pageload //
+// ############################## //
+let fullscreenToast = null;
+
+function displayFullscreenPromptToast() {
+  if (fullscreenToast) return;
+
+  fullscreenToast = document.createElement("div");
+  fullscreenToast.className = "fullscreen-toast";
+  fullscreenToast.innerHTML = `
+    <p>You're missing something... fullscreen makes it visible.</p>
+    <div class="fullscreen-toast-buttons">
+      <button id="fullscreen-yes">Enter Fullscreen</button>
+      <button id="fullscreen-no">Not now</button>
+    </div>
+  `;
+
+  document.body.appendChild(fullscreenToast);
+
+  setTimeout(() => {
+    fullscreenToast.classList.add("show");
+  }, 100);
+
+  document.getElementById("fullscreen-yes").addEventListener("click", () => {
+    document.documentElement.requestFullscreen();
+    removeFullscreenPromptToast();
+  });
+
+  document
+    .getElementById("fullscreen-no")
+    .addEventListener("click", removeFullscreenPromptToast);
+}
+
+function removeFullscreenPromptToast() {
+  if (fullscreenToast && document.body.contains(fullscreenToast)) {
+    fullscreenToast.classList.remove("show");
+    setTimeout(() => {
+      if (fullscreenToast && document.body.contains(fullscreenToast)) {
+        document.body.removeChild(fullscreenToast);
+      }
+      fullscreenToast = null;
+    }, 500);
+  }
+}
+
+window.addEventListener("load", () => {
+  const isDesktopOS = /Windows|Macintosh|Linux/i.test(navigator.userAgent);
+  if (isDesktopOS) {
+    displayFullscreenPromptToast();
+  }
+});
+
 // #################### //
 //  Hero section toast  //
 // #################### //
@@ -295,7 +348,7 @@ if (document.readyState === "complete") {
     devToolsToast = document.createElement("div");
     devToolsToast.className = "devtools-toast";
     devToolsToast.innerHTML = `
-            <p>The source code of this page is readily available at:</p>
+            <p>The source code of this page is available at:</p>
             <a href="https://github.com/8gudbits/noman" target="_blank">github.com/8gudbits/noman</a>
             <p>You can check it out there...</p>
         `;
