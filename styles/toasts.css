@@ -1,0 +1,302 @@
+/* /styles/toasts.css */
+
+/* ############################### */
+/*  Fullscreen prompt on pageload  */
+/* ############################### */
+.fullscreen-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: var(--glass-shadow);
+    padding: 1.5rem;
+    color: var(--text-primary);
+    z-index: 1000;
+    max-width: 300px;
+    transform: translateX(400px);
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition-smooth);
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.fullscreen-toast.show {
+    transform: translateX(0);
+    opacity: 1;
+    visibility: visible;
+}
+
+.fullscreen-toast p {
+    margin: 0.5rem 0;
+    color: var(--text-secondary);
+}
+
+.fullscreen-toast p:first-child {
+    margin-top: 0;
+}
+
+.fullscreen-toast p:last-child {
+    margin-bottom: 0;
+    color: var(--text-primary);
+    font-style: italic;
+}
+
+.fullscreen-toast .fullscreen-toast-buttons {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.fullscreen-toast .fullscreen-toast-buttons button {
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-weight: bold;
+    transition: var(--transition-smooth);
+}
+
+.fullscreen-toast .fullscreen-toast-buttons button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--accent-red);
+    color: var(--accent-light-red);
+}
+
+/* #################### */
+/*  See Parallax Toast  */
+/* #################### */
+.parallax-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: var(--glass-shadow);
+    padding: 1.5rem;
+    color: var(--text-primary);
+    z-index: 1000;
+    max-width: 300px;
+    transform: translateX(400px);
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition-smooth);
+}
+
+.parallax-toast.show {
+    transform: translateX(0);
+    opacity: 1;
+    visibility: visible;
+}
+
+/* #################### */
+/*  Hero section toast  */
+/* #################### */
+.hero-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: var(--glass-shadow);
+    padding: 1.5rem;
+    color: var(--text-primary);
+    z-index: 1000;
+    max-width: 300px;
+    transform: translateX(400px);
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition-smooth);
+}
+
+.hero-toast.show {
+    transform: translateX(0);
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ##################### */
+/*  About section toast  */
+/* ##################### */
+.about-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: var(--glass-shadow);
+    padding: 1.5rem;
+    color: var(--text-primary);
+    z-index: 1000;
+    max-width: 300px;
+    transform: translateX(400px);
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition-smooth);
+}
+
+.about-toast.show {
+    transform: translateX(0);
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ########################## */
+/*  Speed toast notification  */
+/* ########################## */
+.speed-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: var(--glass-shadow);
+    padding: 1.5rem;
+    color: var(--text-primary);
+    z-index: 1000;
+    max-width: 300px;
+    transform: translateX(400px);
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition-smooth);
+}
+
+.speed-toast.show {
+    transform: translateX(0);
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ########################## */
+/*  DevTools detection toast  */
+/* ########################## */
+.devtools-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: var(--glass-shadow);
+    padding: 1.5rem;
+    color: var(--text-primary);
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    z-index: 10000;
+    max-width: 350px;
+    transform: translateX(400px);
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition-smooth);
+}
+
+.devtools-toast.show {
+    transform: translateX(0);
+    opacity: 1;
+    visibility: visible;
+}
+
+.devtools-toast a {
+    color: var(--accent-light-red);
+    font-weight: bold;
+    text-decoration: none;
+    display: block;
+    margin: 0.5rem 0;
+    word-break: break-all;
+    transition: var(--transition-smooth);
+    border: 1px solid var(--glass-border);
+    padding: 0.5rem;
+    border-radius: 8px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.devtools-toast a:hover {
+    color: var(--text-primary);
+    background: rgba(255, 59, 48, 0.1);
+    border-color: var(--accent-red);
+}
+
+.devtools-toast p {
+    margin: 0.5rem 0;
+    color: var(--text-secondary);
+}
+
+.devtools-toast p:first-child {
+    margin-top: 0;
+}
+
+.devtools-toast p:last-child {
+    margin-bottom: 0;
+    color: var(--text-primary);
+    font-style: italic;
+}
+
+.parallax-toast::before,
+.hero-toast::before,
+.about-toast::before,
+.speed-toast::before,
+.devtools-toast::before {
+    /* \00D7 is same as multiplication sign */
+    content: "\00D7";
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1001;
+}
+
+.parallax-toast:hover::before,
+.hero-toast:hover::before,
+.about-toast:hover::before,
+.speed-toast:hover::before,
+.devtools-toast:hover::before {
+    color: var(--accent-red);
+}
+
+/* Responsive design for all toasts */
+@media (max-width: 572px) {
+
+    .hero-toast,
+    .parallax-toast,
+    .about-toast,
+    .speed-toast {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        transform: translateX(400px);
+    }
+
+    .hero-toast.show,
+    .about-toast.show,
+    .speed-toast.show {
+        transform: translateX(0);
+    }
+}
+
