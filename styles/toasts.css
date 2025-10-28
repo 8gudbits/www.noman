@@ -200,7 +200,7 @@
     font-size: 0.9rem;
     line-height: 1.5;
     z-index: 10000;
-    max-width: 300px;
+    max-width: 350px;
     transform: translateX(400px);
     opacity: 0;
     visibility: hidden;

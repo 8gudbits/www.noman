@@ -334,7 +334,7 @@ if (document.readyState === "complete") {
     devToolsToast.className = "devtools-toast";
     devToolsToast.innerHTML = `
             <p>The source code of this page is available at:</p>
-            <a href="https://github.com/8gudbits/noman" target="_blank">github.com/8gudbits/noman</a>
+            <a href="https://github.com/8gudbits/www.noman" target="_blank">github.com/8gudbits/www.noman</a>
             <p>You can check it out there...</p>
         `;
 
