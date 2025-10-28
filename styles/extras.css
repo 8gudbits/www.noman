@@ -101,10 +101,10 @@
     color: var(--accent-light-red);
 }
 
-/* ############################ */
-/*  Achievements section toast  */
-/* ############################ */
-.achievements-toast {
+/* #################### */
+/*  See Parallax Toast  */
+/* #################### */
+.parallax-toast {
     position: fixed;
     top: 20px;
     right: 20px;
@@ -123,7 +123,7 @@
     transition: var(--transition-smooth);
 }
 
-.achievements-toast.show {
+.parallax-toast.show {
     transform: translateX(0);
     opacity: 1;
     visibility: visible;
@@ -284,7 +284,7 @@
 @media (max-width: 572px) {
 
     .hero-toast,
-    .achievements-toast,
+    .parallax-toast,
     .about-toast,
     .speed-toast,
     .devtools-toast {

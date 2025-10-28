@@ -93,7 +93,9 @@ function displayFullscreenPromptToast() {
     removeFullscreenPromptToast();
   });
 
-  document.getElementById("fullscreen-no").addEventListener("click", removeFullscreenPromptToast);
+  document
+    .getElementById("fullscreen-no")
+    .addEventListener("click", removeFullscreenPromptToast);
 
   setTimeout(removeFullscreenPromptToast, 8000);
 }
@@ -112,7 +114,9 @@ function removeFullscreenPromptToast() {
 
 window.addEventListener("load", () => {
   const isDesktopOS = /Windows|Macintosh|Linux/i.test(navigator.userAgent);
-  if (isDesktopOS) {
+  const isNotFullscreen = window.screenTop == 0 || window.screenY == 0;
+
+  if (isDesktopOS && isNotFullscreen) {
     displayFullscreenPromptToast();
   }
 });
@@ -178,30 +182,23 @@ window.addEventListener("scroll", function () {
 
 monitorHeroSectionIdle();
 
-// ############################ //
-//  Achievements section toast  //
-// ############################ //
-let achievementsToastShown = false;
+// #################### //
+//  See Parallax Toast  //
+// #################### //
+let parallaxToastShown = false;
 
-function monitorAchievementsSectionView() {
-  if (achievementsToastShown) return;
+function monitorScrollDepthForParallaxToast() {
+  if (parallaxToastShown) return;
 
-  const achievementsSection = document.querySelector("#achievements");
-  if (!achievementsSection) return;
-
-  const rect = achievementsSection.getBoundingClientRect();
-  if (
-    rect.top < window.innerHeight * 0.8 &&
-    rect.bottom > window.innerHeight * 0.2
-  ) {
-    achievementsToastShown = true;
-    displayAchievementsSectionToast();
+  if (window.scrollY >= 2000) {
+    parallaxToastShown = true;
+    displayParallaxToast();
   }
 }
 
-function displayAchievementsSectionToast() {
+function displayParallaxToast() {
   const toast = document.createElement("div");
-  toast.className = "achievements-toast";
+  toast.className = "parallax-toast";
   toast.textContent =
     "Mouse movement reveals what's layered beneath. Move it, and you will see the parallax.";
 
@@ -211,13 +208,13 @@ function displayAchievementsSectionToast() {
     toast.classList.add("show");
   }, 100);
 
-  toast.addEventListener("click", removeAchievementsToast);
+  toast.addEventListener("click", removeParallaxToast);
 
-  setTimeout(removeAchievementsToast, 8000);
+  setTimeout(removeParallaxToast, 10000);
 }
 
-function removeAchievementsToast() {
-  const toast = document.querySelector(".achievements-toast");
+function removeParallaxToast() {
+  const toast = document.querySelector(".parallax-toast");
   if (toast && document.body.contains(toast)) {
     toast.classList.remove("show");
     setTimeout(() => {
@@ -228,8 +225,7 @@ function removeAchievementsToast() {
   }
 }
 
-window.addEventListener("scroll", monitorAchievementsSectionView);
-monitorAchievementsSectionView();
+window.addEventListener("scroll", monitorScrollDepthForParallaxToast);
 
 // ##################### //
 //  About section toast  //
@@ -595,3 +591,4 @@ events.forEach((event) => {
 });
 
 startInactivityTimer();
+
