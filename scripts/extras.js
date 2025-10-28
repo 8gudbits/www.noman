@@ -93,9 +93,9 @@ function displayFullscreenPromptToast() {
     removeFullscreenPromptToast();
   });
 
-  document
-    .getElementById("fullscreen-no")
-    .addEventListener("click", removeFullscreenPromptToast);
+  document.getElementById("fullscreen-no").addEventListener("click", removeFullscreenPromptToast);
+
+  setTimeout(removeFullscreenPromptToast, 8000);
 }
 
 function removeFullscreenPromptToast() {
@@ -177,6 +177,59 @@ window.addEventListener("scroll", function () {
 });
 
 monitorHeroSectionIdle();
+
+// ############################ //
+//  Achievements section toast  //
+// ############################ //
+let achievementsToastShown = false;
+
+function monitorAchievementsSectionView() {
+  if (achievementsToastShown) return;
+
+  const achievementsSection = document.querySelector("#achievements");
+  if (!achievementsSection) return;
+
+  const rect = achievementsSection.getBoundingClientRect();
+  if (
+    rect.top < window.innerHeight * 0.8 &&
+    rect.bottom > window.innerHeight * 0.2
+  ) {
+    achievementsToastShown = true;
+    displayAchievementsSectionToast();
+  }
+}
+
+function displayAchievementsSectionToast() {
+  const toast = document.createElement("div");
+  toast.className = "achievements-toast";
+  toast.textContent =
+    "Mouse movement reveals what's layered beneath. Move it, and you will see the parallax.";
+
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add("show");
+  }, 100);
+
+  toast.addEventListener("click", removeAchievementsToast);
+
+  setTimeout(removeAchievementsToast, 8000);
+}
+
+function removeAchievementsToast() {
+  const toast = document.querySelector(".achievements-toast");
+  if (toast && document.body.contains(toast)) {
+    toast.classList.remove("show");
+    setTimeout(() => {
+      if (document.body.contains(toast)) {
+        document.body.removeChild(toast);
+      }
+    }, 500);
+  }
+}
+
+window.addEventListener("scroll", monitorAchievementsSectionView);
+monitorAchievementsSectionView();
 
 // ##################### //
 //  About section toast  //
@@ -542,4 +595,3 @@ events.forEach((event) => {
 });
 
 startInactivityTimer();
-

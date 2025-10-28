@@ -101,6 +101,34 @@
     color: var(--accent-light-red);
 }
 
+/* ############################ */
+/*  Achievements section toast  */
+/* ############################ */
+.achievements-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: var(--glass-shadow);
+    padding: 1.5rem;
+    color: var(--text-primary);
+    z-index: 1000;
+    max-width: 300px;
+    transform: translateX(400px);
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition-smooth);
+}
+
+.achievements-toast.show {
+    transform: translateX(0);
+    opacity: 1;
+    visibility: visible;
+}
+
 /* #################### */
 /*  Hero section toast  */
 /* #################### */
@@ -256,6 +284,7 @@
 @media (max-width: 572px) {
 
     .hero-toast,
+    .achievements-toast,
     .about-toast,
     .speed-toast,
     .devtools-toast {
