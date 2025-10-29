@@ -1,8 +1,8 @@
 // /scripts/moveable.js
 
-// ################################ //
-// Item dragging and deleting logic //
-// ################################ //
+// ################################## //
+//  Item dragging and deleting logic  //
+// ################################## //
 class ItemDragManager {
   constructor() {
     this.currentlyDraggedItem = null;
