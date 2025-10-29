@@ -1,5 +1,9 @@
 // /scripts/toasts.js
 
+function isDesktop() {
+  return !/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
 // ############################### //
 //  Fullscreen prompt on pageload  //
 // ############################### //
@@ -49,10 +53,9 @@ function removeFullscreenPromptToast() {
 }
 
 window.addEventListener("load", () => {
-  const isDesktopOS = /Windows|Macintosh|Linux/i.test(navigator.userAgent);
-  const isNotFullscreen = window.screenTop == 0 || window.screenY == 0;
+  const isNotFullscreen = window.screenTop === 0 || window.screenY === 0;
 
-  if (isDesktopOS && isNotFullscreen) {
+  if (isDesktop() && isNotFullscreen) {
     displayFullscreenPromptToast();
   }
 });
@@ -161,7 +164,9 @@ function removeParallaxToast() {
   }
 }
 
-window.addEventListener("scroll", monitorScrollDepthForParallaxToast);
+if (isDesktop()) {
+  window.addEventListener("scroll", monitorScrollDepthForParallaxToast);
+}
 
 // ##################### //
 //  About section toast  //
