@@ -148,27 +148,30 @@ document.addEventListener("DOMContentLoaded", initializeInactivitySleep);
 let wakeLock = null;
 
 async function requestWakeLock() {
-  if (!("wakeLock" in navigator)) return;
+  if (!("wakeLock" in navigator) || !navigator.wakeLock.request) return;
+
   try {
+    if (wakeLock !== null) return;
+
     wakeLock = await navigator.wakeLock.request("screen");
     wakeLock.addEventListener("release", () => {
-      console.log("Wake Lock was released");
+      wakeLock = null;
     });
-    console.log("Wake Lock is active!");
   } catch (err) {
-    console.error(`Could not obtain wake lock: ${err.name}, ${err.message}`);
+    wakeLock = null;
   }
 }
 
-// Re-request if tab becomes visible again
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) {
     requestWakeLock();
   }
 });
 
-// Start immediately
-if (/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)) {
+if (
+  "wakeLock" in navigator &&
+  /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+) {
   requestWakeLock();
 }
 
