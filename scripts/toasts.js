@@ -328,82 +328,71 @@ if (document.readyState === "complete") {
 // ########################### //
 //  Developer Tools detection  //
 // ########################### //
-(function () {
-  let isDevToolsOpen = false;
+(function() {
   let devToolsToast = null;
+  let devToolsOpen = false;
+  let baselineWidth = 0;
+  let baselineHeight = 0;
+  let hasTriggered = false;
 
-  function displayDevToolsSourceToast() {
-    if (devToolsToast && document.body.contains(devToolsToast)) return; // Don't show multiple toasts
+  function showToast() {
+    if (devToolsToast || devToolsOpen || hasTriggered) return;
+    hasTriggered = true;
+    devToolsOpen = true;
 
     devToolsToast = document.createElement("div");
     devToolsToast.className = "devtools-toast";
     devToolsToast.innerHTML = `
-            <p>The source code of this page is available at:</p>
-            <a href="https://github.com/8gudbits/www.noman" target="_blank">github.com/8gudbits/www.noman</a>
-            <p>You can check it out there...</p>
-        `;
-
+      <p>The source code of this page is available at:</p>
+      <a href="https://github.com/8gudbits/www.noman" target="_blank">github.com/8gudbits/www.noman</a>
+      <p>You can check it out there...</p>
+    `;
     document.body.appendChild(devToolsToast);
-
-    setTimeout(() => {
-      devToolsToast.classList.add("show");
-    }, 100);
-
-    setTimeout(() => {
-      if (devToolsToast && document.body.contains(devToolsToast)) {
-        removeDevToolsToast();
-      }
-    }, 8000);
-
-    devToolsToast.addEventListener("click", removeDevToolsToast);
+    setTimeout(() => devToolsToast.classList.add("show"), 100);
+    setTimeout(removeToast, 8000);
+    devToolsToast.addEventListener("click", removeToast);
   }
 
-  function removeDevToolsToast() {
+  function removeToast() {
     if (devToolsToast && document.body.contains(devToolsToast)) {
       devToolsToast.classList.remove("show");
       setTimeout(() => {
-        if (devToolsToast && document.body.contains(devToolsToast)) {
+        if (devToolsToast && document.body.contains(devToolsToast))
           document.body.removeChild(devToolsToast);
-        }
         devToolsToast = null;
       }, 500);
     }
   }
 
-  // Method 1: Check console size (most reliable)
-  const threshold = 160;
-  const widthThreshold = window.outerWidth - window.innerWidth > threshold;
-  const heightThreshold = window.outerHeight - window.innerHeight > threshold;
-
-  if (widthThreshold || heightThreshold) {
-    displayDevToolsSourceToast();
-    isDevToolsOpen = true;
+  // Measure current chrome size
+  function getDiffs() {
+    return {
+      width: window.outerWidth - window.innerWidth,
+      height: window.outerHeight - window.innerHeight
+    };
   }
 
-  // Method 2: Listen for debugger statements
-  let element = new Image();
-  Object.defineProperty(element, "id", {
-    get: function () {
-      if (!isDevToolsOpen) {
-        displayDevToolsSourceToast();
-        isDevToolsOpen = true;
-      }
-    },
+  // On load, record baseline
+  window.addEventListener("load", function() {
+    const diff = getDiffs();
+    baselineWidth = diff.width;
+    baselineHeight = diff.height;
+
+    setTimeout(checkDevTools, 500);
   });
 
-  // Method 3: Check for resize (devtools opening/closing)
-  window.addEventListener("resize", function () {
-    setTimeout(function () {
-      const widthCheck = window.outerWidth - window.innerWidth > threshold;
-      const heightCheck = window.outerHeight - window.innerHeight > threshold;
-
-      if ((widthCheck || heightCheck) && !isDevToolsOpen) {
-        displayDevToolsSourceToast();
-        isDevToolsOpen = true;
-      } else if (!widthCheck && !heightCheck && isDevToolsOpen) {
-        isDevToolsOpen = false;
-      }
-    }, 500);
+  // Resize listener
+  let resizeTimer;
+  window.addEventListener("resize", function() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(checkDevTools, 300);
   });
+
+  function checkDevTools() {
+    const diff = getDiffs();
+    if (diff.width > baselineWidth + 100 || diff.height > baselineHeight + 100) {
+      showToast();
+    }
+  }
 })();
 
